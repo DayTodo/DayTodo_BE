@@ -1,9 +1,13 @@
 package com.daytodo.domain.course.entity;
 
+import com.daytodo.domain.course.enums.MemberRole;
+import com.daytodo.domain.course.enums.MemberStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
@@ -11,7 +15,13 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @Entity
-@Table(name = "CourseMember")
+@EntityListeners(AuditingEntityListener.class)
+@Table(
+        name = "CourseMember",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_course_member", columnNames = {"course_id", "user_id"})
+        }
+)
 public class CourseMember {
 
     @Id
@@ -25,12 +35,15 @@ public class CourseMember {
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "member_role", nullable = false, length = 20)
-    private String memberRole;
+    private MemberRole memberRole;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "member_status", nullable = false, length = 20)
-    private String memberStatus;
+    private MemberStatus memberStatus;
 
-    @Column(name = "joined_at", nullable = false)
+    @CreatedDate
+    @Column(name = "joined_at", nullable = false, updatable = false)
     private LocalDateTime joinedAt;
 }

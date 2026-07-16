@@ -1,9 +1,15 @@
 package com.daytodo.domain.course.entity;
 
+import com.daytodo.domain.course.enums.CourseStatus;
+import com.daytodo.domain.course.enums.ParticipantType;
+import com.daytodo.domain.course.enums.RelationType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -12,6 +18,7 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "Course")
 public class Course {
 
@@ -38,14 +45,17 @@ public class Course {
     @Column(name = "max_price", nullable = false)
     private Integer maxPrice;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "participant_type", nullable = false, length = 20)
-    private String participantType;
+    private ParticipantType participantType;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "relation_type", nullable = false, length = 20)
-    private String relationType;
+    private RelationType relationType;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "course_status", nullable = false, length = 20)
-    private String courseStatus;
+    private CourseStatus courseStatus;
 
     @Column(name = "current_order_index")
     private Integer currentOrderIndex;
@@ -53,9 +63,11 @@ public class Course {
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
 
-    @Column(name = "created_at", nullable = false)
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @LastModifiedDate
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 }

@@ -1,9 +1,12 @@
 package com.daytodo.domain.course.entity;
 
+import com.daytodo.domain.course.enums.CoursePlaceStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
@@ -11,6 +14,7 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "CoursePlace")
 public class CoursePlace {
 
@@ -31,12 +35,14 @@ public class CoursePlace {
     @Column(name = "place_order", nullable = false)
     private Integer placeOrder;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "course_place_status", nullable = false, length = 20)
-    private String coursePlaceStatus;
+    private CoursePlaceStatus coursePlaceStatus;
 
     @Column(name = "visited_at")
     private LocalDateTime visitedAt;
 
-    @Column(name = "created_at", nullable = false)
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 }
