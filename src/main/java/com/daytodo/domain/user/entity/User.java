@@ -6,7 +6,12 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.time.LocalDateTime;
+@EntityListeners(AuditingEntityListener.class)
 @Getter
 @Entity
 @Table(name = "users")
@@ -52,6 +57,16 @@ public class User {
             nullable = false
     )
     private LoginType loginType;
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @LastModifiedDate
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
+    @Column(name = "withdrawn_at")
+    private LocalDateTime withdrawnAt;
 
     @Enumerated(EnumType.STRING)
     @Column(
