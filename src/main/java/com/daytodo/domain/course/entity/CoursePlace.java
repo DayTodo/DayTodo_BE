@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @Entity
-@Table(name = "CoursePlace")
+@Table(name = "course_place")
 public class CoursePlace extends BaseCreatedEntity {
 
     @Id
