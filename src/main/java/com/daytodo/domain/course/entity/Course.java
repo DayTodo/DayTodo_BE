@@ -1,5 +1,6 @@
 package com.daytodo.domain.course.entity;
 
+import com.daytodo.domain.common.BaseEntity;
 import com.daytodo.domain.course.enums.CourseStatus;
 import com.daytodo.domain.course.enums.ParticipantType;
 import com.daytodo.domain.course.enums.RelationType;
@@ -7,9 +8,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -18,9 +16,8 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @Entity
-@EntityListeners(AuditingEntityListener.class)
 @Table(name = "Course")
-public class Course {
+public class Course extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -62,12 +59,4 @@ public class Course {
 
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
-
-    @CreatedDate
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @LastModifiedDate
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
 }

@@ -1,8 +1,8 @@
 package com.daytodo.domain.course.enums;
 
 public enum ParticipantType {
-    FRIEND,
+    ALONE,
     COUPLE,
-    FAMILY,
-    COLLEAGUE
+    FRIEND,
+    FAMILY
 }
