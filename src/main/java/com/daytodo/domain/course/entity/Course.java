@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @Entity
-@Table(name = "Course")
+@Table(name = "course")
 public class Course extends BaseEntity {
 
     @Id
