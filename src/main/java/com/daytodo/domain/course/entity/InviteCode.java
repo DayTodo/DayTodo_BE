@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @Entity
-@Table(name = "InviteCode")
+@Table(name = "invite_code")
 public class InviteCode extends BaseCreatedEntity {
 
     @Id
