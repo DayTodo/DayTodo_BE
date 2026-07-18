@@ -1,22 +1,21 @@
 package com.daytodo.domain.user.entity;
 
+import com.daytodo.domain.common.BaseEntity;
 import com.daytodo.domain.user.enums.LoginType;
 import com.daytodo.domain.user.enums.UserStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 
 import java.time.LocalDateTime;
-@EntityListeners(AuditingEntityListener.class)
+
 @Getter
 @Entity
 @Table(name = "users")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class User {
+public class User extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
@@ -57,13 +56,7 @@ public class User {
             nullable = false
     )
     private LoginType loginType;
-    @CreatedDate
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
 
-    @LastModifiedDate
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
 
     @Column(name = "withdrawn_at")
     private LocalDateTime withdrawnAt;
