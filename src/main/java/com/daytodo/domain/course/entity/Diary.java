@@ -1,7 +1,7 @@
 package com.daytodo.domain.course.entity;
 
 import com.daytodo.domain.common.BaseEntity;
-import com.daytodo.domain.auth.entity.User;
+import com.daytodo.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
