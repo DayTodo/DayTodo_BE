@@ -2,6 +2,7 @@ package com.daytodo.domain.course.entity;
 
 import com.daytodo.domain.course.enums.MemberRole;
 import com.daytodo.domain.course.enums.MemberStatus;
+import com.daytodo.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -29,11 +30,13 @@ public class CourseMember {
     @Column(name = "course_member_id")
     private Long courseMemberId;
 
-    @Column(name = "course_id", nullable = false)
-    private Long courseId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "course_id", nullable = false)
+    private Course course;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "member_role", nullable = false, length = 20)
@@ -46,4 +49,15 @@ public class CourseMember {
     @CreatedDate
     @Column(name = "joined_at", nullable = false, updatable = false)
     private LocalDateTime joinedAt;
+
+    public CourseMember(Course course, User user, MemberRole memberRole, MemberStatus memberStatus) {
+        this.course = course;
+        this.user = user;
+        this.memberRole = memberRole;
+        this.memberStatus = memberStatus;
+    }
+
+    public void join() {
+        this.memberStatus = MemberStatus.JOINED;
+    }
 }
