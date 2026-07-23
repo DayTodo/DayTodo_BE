@@ -44,7 +44,7 @@ public class CourseResDto {
             return new CoursePlaceRes(
                     coursePlace.getCoursePlaceId(),
                     coursePlace.getPlaceId(),
-                    null, // TODO: Place 도메인 완성되면 placeName 채우기
+                    null, // TODO: Place Repository 연동 후 placeName 채우기
                     coursePlace.getPlaceOrder()
             );
         }
@@ -60,7 +60,7 @@ public class CourseResDto {
         public static CourseMemberRes from(CourseMember courseMember) {
             return new CourseMemberRes(
                     courseMember.getUserId(),
-                    null, // TODO: User 도메인 완성되면 nickname 채우기
+                    null, // TODO: User Repository 연동 후 nickname 채우기
                     courseMember.getMemberRole()
             );
         }
