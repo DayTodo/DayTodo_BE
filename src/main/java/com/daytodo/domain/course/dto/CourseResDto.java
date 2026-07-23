@@ -1,7 +1,9 @@
 package com.daytodo.domain.course.dto;
 
 import com.daytodo.domain.course.entity.Course;
+import com.daytodo.domain.course.entity.CourseMember;
 import com.daytodo.domain.course.entity.CoursePlace;
+import com.daytodo.domain.course.enums.MemberRole;
 import com.daytodo.domain.course.enums.ParticipantType;
 
 import java.time.LocalDate;
@@ -44,6 +46,21 @@ public class CourseResDto {
                     coursePlace.getPlaceId(),
                     null, // TODO: Place 도메인 완성되면 placeName 채우기
                     coursePlace.getPlaceOrder()
+            );
+        }
+    }
+
+    // [코스 구성] 코스 멤버 목록 조회
+    public record CourseMemberRes(
+            Long memberId,
+            String nickname,
+            MemberRole memberRole
+    ) {
+        public static CourseMemberRes from(CourseMember courseMember) {
+            return new CourseMemberRes(
+                    courseMember.getUserId(),
+                    null, // TODO: User 도메인 완성되면 nickname 채우기
+                    courseMember.getMemberRole()
             );
         }
     }

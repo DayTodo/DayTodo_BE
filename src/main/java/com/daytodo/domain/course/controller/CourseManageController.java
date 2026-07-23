@@ -42,4 +42,16 @@ public class CourseManageController {
                 courseManageService.getCoursePlaces(courseId, userId);
         return ResponseEntity.ok(response);
     }
+
+    // 코스 멤버 목록 조회
+    @GetMapping("/{courseId}/members")
+    public ResponseEntity<List<CourseResDto.CourseMemberRes>> getCourseMembers(
+            @PathVariable Long courseId
+    ) {
+        Long userId = null; // TODO: 인증 붙이면 실제 로그인 사용자 ID로 교체
+
+        List<CourseResDto.CourseMemberRes> response =
+                courseManageService.getCourseMembers(courseId, userId);
+        return ResponseEntity.ok(response);
+    }
 }
