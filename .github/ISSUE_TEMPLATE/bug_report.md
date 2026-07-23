@@ -2,19 +2,12 @@
 name: Bug report
 about: Create a report to help us improve
 title: ''
-labels: "\U0001F41B fix"
+labels: "✨ feature, \U0001F41B fix"
 assignees: ''
 type: Bug
 
 ---
 
----
-name: Bug report
-about: 에러를 발견했어요.
-title: "API 403 Forbidden"
-labels: "🐛 fix"
-assignees: ""
----
 ## 📄 API
 <!-- API 명세서에서 해당 문서 링크를 붙여 넣으세요. -->
 
