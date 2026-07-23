@@ -1,6 +1,5 @@
 package com.daytodo.domain.place.entity.mapping;
 import com.daytodo.domain.common.BaseCreatedEntity;
-import com.daytodo.domain.place.entity.BookmarkCategory;
 import com.daytodo.domain.place.entity.Place;
 import com.daytodo.domain.user.entity.User;
 import jakarta.persistence.Column;
@@ -52,29 +51,11 @@ public class BookmarkPlace extends BaseCreatedEntity {
     @JoinColumn(name="place_id", nullable = false)
     private Place place;
 
-    @ManyToOne(
-            fetch = FetchType.LAZY,
-            optional = false
-    )
-    @JoinColumn(
-            name = "bookmark_category_id",
-            nullable = false
-    )
-    private BookmarkCategory bookmarkCategory;
-
     public BookmarkPlace(
             User user,
-            Place place,
-            BookmarkCategory bookmarkCategory
+            Place place
     ) {
         this.user = user;
         this.place = place;
-        this.bookmarkCategory = bookmarkCategory;
-    }
-
-    public void changeCategory(
-            BookmarkCategory bookmarkCategory
-    ) {
-        this.bookmarkCategory = bookmarkCategory;
     }
 }
