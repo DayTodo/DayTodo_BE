@@ -52,6 +52,7 @@ public class CourseResDto {
 
     // [코스 구성] 코스 멤버 목록 조회
     public record CourseMemberRes(
+            // URL의 {memberId}로 전달하는 값. CourseMember PK가 아닌 userId다.
             Long memberId,
             String nickname,
             MemberRole memberRole

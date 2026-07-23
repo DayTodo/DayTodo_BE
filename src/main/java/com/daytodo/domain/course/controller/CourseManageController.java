@@ -59,6 +59,8 @@ public class CourseManageController {
     @DeleteMapping("/{courseId}/members/{memberId}")
     public ResponseEntity<Void> kickCourseMember(
             @PathVariable Long courseId,
+            // URL 호환성을 위해 memberId라는 경로명은 유지한다.
+            // 이 값은 CourseMember PK가 아니라 강퇴 대상 사용자의 userId다.
             @PathVariable Long memberId
     ) {
         Long userId = null; // TODO: 인증 붙이면 실제 로그인 사용자 ID로 교체

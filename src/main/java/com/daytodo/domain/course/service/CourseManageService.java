@@ -37,6 +37,7 @@ public class CourseManageService {
         // TODO: 인증/인가 붙일 때 - course.getOwnerId().equals(userId) 검증 추가
 
         validateDateChange(course, request.courseDate());
+        validatePriceRange(request.minPrice(), request.maxPrice());
 
         course.setCourseName(request.courseName());
         course.setRegionId(request.regionId());
@@ -54,6 +55,12 @@ public class CourseManageService {
 
         if (isInProgress && isDateChanged) {
             throw new ProjectException(CourseErrorCode.COURSE_DATE_CHANGE_NOT_ALLOWED);
+        }
+    }
+
+    private void validatePriceRange(Integer minPrice, Integer maxPrice) {
+        if (minPrice > maxPrice) {
+            throw new ProjectException(CourseErrorCode.INVALID_PRICE_RANGE);
         }
     }
 
@@ -103,7 +110,7 @@ public class CourseManageService {
     }
 
     @Transactional
-    public void kickCourseMember(Long courseId, Long memberId, Long userId) {
+    public void kickCourseMember(Long courseId, Long targetUserId, Long userId) {
 
         // 1. 코스 조회
         Course course = courseRepository.findById(courseId)
@@ -120,7 +127,7 @@ public class CourseManageService {
 
         // 3. 강퇴 대상 멤버가 해당 코스에 참여 중인지 확인
         CourseMember target = courseMemberRepository
-                .findByCourseIdAndUserIdAndMemberStatus(courseId, memberId, MemberStatus.JOINED)
+                .findByCourseIdAndUserIdAndMemberStatus(courseId, targetUserId, MemberStatus.JOINED)
                 .orElseThrow(() -> new ProjectException(CourseErrorCode.COURSE_MEMBER_NOT_FOUND));
 
         // 4. 방장은 강퇴할 수 없음
