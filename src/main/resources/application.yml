@@ -27,3 +27,8 @@ jwt:
     expiration:
       access: 1800000    # 30분
       refresh: 1209600000 # 14일
+
+naver:
+  base-url: https://openapi.naver.com
+  client-id: ${NAVER_CLIENT_ID}
+  client-secret: ${NAVER_CLIENT_SECRET}
