@@ -54,4 +54,16 @@ public class CourseManageController {
                 courseManageService.getCourseMembers(courseId, userId);
         return ResponseEntity.ok(response);
     }
+
+    // 코스 멤버 강퇴
+    @DeleteMapping("/{courseId}/members/{memberId}")
+    public ResponseEntity<Void> kickCourseMember(
+            @PathVariable Long courseId,
+            @PathVariable Long memberId
+    ) {
+        Long userId = null; // TODO: 인증 붙이면 실제 로그인 사용자 ID로 교체
+
+        courseManageService.kickCourseMember(courseId, memberId, userId);
+        return ResponseEntity.ok().build();
+    }
 }

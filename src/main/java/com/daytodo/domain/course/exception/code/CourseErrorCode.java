@@ -24,6 +24,15 @@ public enum CourseErrorCode implements BaseErrorCode {
     COURSE_ACCESS_DENIED(HttpStatus.FORBIDDEN,
             "COURSE_ACCESS_DENIED",
             "코스에 접근할 권한이 없습니다."),
+    INVALID_MEMBER(HttpStatus.BAD_REQUEST,
+            "INVALID_MEMBER",
+            "잘못된 멤버 요청입니다."),
+    COURSE_MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND,
+            "COURSE_MEMBER_NOT_FOUND",
+            "해당 코스에 참여 중인 멤버를 찾을 수 없습니다."),
+    OWNER_CANNOT_BE_REMOVED(HttpStatus.CONFLICT,
+            "OWNER_CANNOT_BE_REMOVED",
+            "방장은 강퇴할 수 없습니다."),
     ;
 
     private final HttpStatus status;
