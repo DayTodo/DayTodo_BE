@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/courses")
 @RequiredArgsConstructor
@@ -25,6 +27,19 @@ public class CourseManageController {
         Long userId = null; // TODO: 인증 붙이면 실제 로그인 사용자 ID로 교체
 
         CourseResDto.SettingRes response = courseManageService.updateCourseSetting(courseId, userId, request);
+        return ResponseEntity.ok(response);
+    }
+
+
+    //코스 장소 리스트 조회
+    @GetMapping("/{courseId}/places")
+    public ResponseEntity<List<CourseResDto.CoursePlaceRes>> getCoursePlaces(
+            @PathVariable Long courseId
+    ) {
+        Long userId = null; // TODO: 인증 붙이면 실제 로그인 사용자 ID로 교체
+
+        List<CourseResDto.CoursePlaceRes> response =
+                courseManageService.getCoursePlaces(courseId, userId);
         return ResponseEntity.ok(response);
     }
 }

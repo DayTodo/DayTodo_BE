@@ -12,12 +12,18 @@ public enum CourseErrorCode implements BaseErrorCode {
     INVALID_COURSE_REQUEST(HttpStatus.BAD_REQUEST,
             "INVALID_COURSE_REQUEST",
             "코스 수정 요청값이 올바르지 않습니다."),
+    INVALID_COURSE_ID(HttpStatus.BAD_REQUEST,
+            "INVALID_COURSE_ID",
+            "잘못된 코스 ID입니다."),
     COURSE_NOT_FOUND(HttpStatus.NOT_FOUND,
             "COURSE_NOT_FOUND",
             "존재하지 않는 코스입니다."),
     COURSE_DATE_CHANGE_NOT_ALLOWED(HttpStatus.CONFLICT,
             "COURSE_DATE_CHANGE_NOT_ALLOWED",
             "진행 중인 코스는 날짜를 수정할 수 없습니다."),
+    COURSE_ACCESS_DENIED(HttpStatus.FORBIDDEN,
+            "COURSE_ACCESS_DENIED",
+            "코스에 접근할 권한이 없습니다."),
     ;
 
     private final HttpStatus status;
