@@ -10,7 +10,7 @@ import com.daytodo.domain.user.entity.User;
 import java.util.List;
 
 /**
- * Course -> 투데이 코스 조회 응답 변환.
+ * Course -> 투데이 코스 조회/종료 응답 변환.
  */
 public class TodayCourseConverter {
 
@@ -34,6 +34,14 @@ public class TodayCourseConverter {
                         .places(coursePlaces.stream().map(TodayCourseConverter::toPlaceItem).toList())
                         .build()
         );
+    }
+
+    public static CourseResDTO.CompleteCourse toCompleteCourse(Course course) {
+        return CourseResDTO.CompleteCourse.builder()
+                .courseId(course.getCourseId())
+                .courseStatus(course.getCourseStatus())
+                .completedAt(course.getCompletedAt())
+                .build();
     }
 
     private static CourseResDTO.GetTodayCourse.MemberItem toMemberItem(CourseMember courseMember) {

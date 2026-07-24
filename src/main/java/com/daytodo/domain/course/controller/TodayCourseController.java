@@ -4,6 +4,8 @@ import com.daytodo.domain.course.dto.response.CourseResDTO;
 import com.daytodo.domain.course.service.TodayCourseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,5 +23,13 @@ public class TodayCourseController {
             @RequestHeader("X-User-Id") Long userId
     ) {
         return todayCourseService.getTodayCourse(userId);
+    }
+
+    @PostMapping("/{courseId}/complete")
+    public CourseResDTO.CompleteCourse completeCourse(
+            @RequestHeader("X-User-Id") Long userId,
+            @PathVariable Long courseId
+    ) {
+        return todayCourseService.completeCourse(userId, courseId);
     }
 }

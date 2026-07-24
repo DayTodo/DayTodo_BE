@@ -1,7 +1,9 @@
 package com.daytodo.domain.course.dto.response;
 
+import com.daytodo.domain.course.enums.CourseStatus;
 import lombok.Builder;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class CourseResDTO {
@@ -32,4 +34,12 @@ public class CourseResDTO {
                 String category
         ){}
     }
+
+    // 코스 종료
+    @Builder
+    public record CompleteCourse(
+            Long courseId,
+            CourseStatus courseStatus,
+            LocalDateTime completedAt
+    ){}
 }

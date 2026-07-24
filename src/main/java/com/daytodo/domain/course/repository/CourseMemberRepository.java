@@ -10,6 +10,12 @@ import java.util.List;
 
 public interface CourseMemberRepository extends JpaRepository<CourseMember, Long> {
 
+    boolean existsByCourse_CourseIdAndUser_IdAndMemberStatus(
+            Long courseId,
+            Long userId,
+            MemberStatus memberStatus
+    );
+
     /*
      * 코스 멤버 목록 조회
      * 응답의 nickname, profileImageUrl 이 필요하므로 User 를 함께 fetch 한다.
