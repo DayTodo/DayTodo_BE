@@ -12,6 +12,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface CourseRepository extends JpaRepository<Course, Long> {
+
     List<Course> findAllByOwnerIdOrderByCreatedAtDesc(Long ownerId);
 
     List<Course> findAllByOwnerIdAndCourseDateGreaterThanEqualOrderByCreatedAtDesc(Long ownerId, LocalDate startDate);

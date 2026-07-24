@@ -9,6 +9,9 @@ import java.util.Collection;
 import java.util.List;
 
 public interface CoursePlaceRepository extends JpaRepository<CoursePlace, Long> {
+
+    List<CoursePlace> findAllByCourseIdOrderByPlaceOrderAsc(Long courseId);
+
     interface CourseCount {
         Long getCourseId();
         long getCount();
