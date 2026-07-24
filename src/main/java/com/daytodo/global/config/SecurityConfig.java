@@ -25,8 +25,19 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    // auth 쪽은 로그인 전에도 호출해야 하는 엔드포인트만 개별로 열어뒀습니다.
+    // /auth/link/naver는 로그인한 사용자만 써야 하므로 의도적으로 목록에서 제외했습니다.
     private static final String[] PERMIT_ALL_PATHS = {
-            "/auth/**",
+            "/auth/login",
+            "/auth/login/naver",
+            "/auth/register",
+            "/auth/email-check",
+            "/auth/token/refresh",
+            "/auth/logout",
+            "/auth/verify-email",
+            "/auth/verify-email/resend",
+            "/auth/password/reset-request",
+            "/auth/password/reset",
             "/swagger-ui/**",
             "/v3/api-docs/**",
             "/courses/**",
