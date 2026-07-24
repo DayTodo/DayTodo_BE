@@ -4,6 +4,8 @@ import com.daytodo.domain.common.BaseEntity;
 import com.daytodo.domain.course.enums.CourseStatus;
 import com.daytodo.domain.course.enums.ParticipantType;
 import com.daytodo.domain.course.enums.RelationType;
+import com.daytodo.domain.region.entity.Region;
+import com.daytodo.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,11 +26,13 @@ public class Course extends BaseEntity {
     @Column(name = "course_id")
     private Long courseId;
 
-    @Column(name = "owner_id", nullable = false)
-    private Long ownerId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_id")
+    private User owner;
 
-    @Column(name = "region_id", nullable = false)
-    private Long regionId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "region_id", nullable = false)
+    private Region region;
 
     @Column(name = "course_name", nullable = false, length = 20)
     private String courseName;
@@ -47,7 +51,7 @@ public class Course extends BaseEntity {
     private ParticipantType participantType;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "relation_type", nullable = false, length = 20)
+    @Column(name = "relation_type", length = 20)
     private RelationType relationType;
 
     @Enumerated(EnumType.STRING)
@@ -59,4 +63,23 @@ public class Course extends BaseEntity {
 
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
+
+    public Course(
+            User owner,
+            Region region,
+            String courseName,
+            LocalDate courseDate,
+            Integer minPrice,
+            Integer maxPrice,
+            ParticipantType participantType
+    ) {
+        this.owner = owner;
+        this.region = region;
+        this.courseName = courseName;
+        this.courseDate = courseDate;
+        this.minPrice = minPrice;
+        this.maxPrice = maxPrice;
+        this.participantType = participantType;
+        this.courseStatus = CourseStatus.PLANNING;
+    }
 }
