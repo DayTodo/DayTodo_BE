@@ -42,4 +42,17 @@ public class CourseResDTO {
             CourseStatus courseStatus,
             LocalDateTime completedAt
     ){}
+
+    // 추억 사진 저장
+    public record SaveMemoryPhotos(
+            Integer savedCount,
+            List<PhotoItem> photos
+    ){
+        @Builder
+        public record PhotoItem(
+                Long memoryPhotoId,
+                String imageUrl,
+                Integer photoOrder
+        ){}
+    }
 }

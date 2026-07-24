@@ -22,9 +22,11 @@ class CourseQueryValidationTest {
     CourseMemberRepository courseMemberRepository;
     @Autowired
     CoursePlaceRepository coursePlaceRepository;
+    @Autowired
+    MemoryPhotoRepository memoryPhotoRepository;
 
     @Test
-    @DisplayName("투데이 코스 조회 JPQL이 정상적으로 실행된다")
+    @DisplayName("투데이 코스 관련 JPQL이 정상적으로 실행된다")
     void queriesRun() {
         assertThat(courseRepository.findMemberCoursesByDateAndStatus(
                 1L, LocalDate.now(), CourseStatus.IN_PROGRESS, MemberStatus.JOINED
@@ -32,5 +34,9 @@ class CourseQueryValidationTest {
 
         assertThat(courseMemberRepository.findMembersByCourseId(1L, MemberStatus.JOINED)).isEmpty();
         assertThat(coursePlaceRepository.findPlacesByCourseId(1L)).isEmpty();
+        assertThat(memoryPhotoRepository.findMaxPhotoOrderByCourseId(1L)).isZero();
+        assertThat(courseMemberRepository.existsByCourse_CourseIdAndUser_IdAndMemberStatus(
+                1L, 1L, MemberStatus.JOINED
+        )).isFalse();
     }
 }

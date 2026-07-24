@@ -1,16 +1,20 @@
 package com.daytodo.domain.course.service;
 
+import com.daytodo.domain.course.converter.MemoryPhotoConverter;
 import com.daytodo.domain.course.converter.TodayCourseConverter;
+import com.daytodo.domain.course.dto.request.CourseReqDTO;
 import com.daytodo.domain.course.dto.response.CourseResDTO;
 import com.daytodo.domain.course.entity.Course;
 import com.daytodo.domain.course.entity.CourseMember;
 import com.daytodo.domain.course.entity.CoursePlace;
+import com.daytodo.domain.course.entity.MemoryPhoto;
 import com.daytodo.domain.course.enums.CourseStatus;
 import com.daytodo.domain.course.enums.MemberStatus;
 import com.daytodo.domain.course.exception.code.CourseErrorCode;
 import com.daytodo.domain.course.repository.CourseMemberRepository;
 import com.daytodo.domain.course.repository.CoursePlaceRepository;
 import com.daytodo.domain.course.repository.CourseRepository;
+import com.daytodo.domain.course.repository.MemoryPhotoRepository;
 import com.daytodo.global.apiPayload.exception.ProjectException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,6 +31,7 @@ public class TodayCourseService {
     private final CourseRepository courseRepository;
     private final CourseMemberRepository courseMemberRepository;
     private final CoursePlaceRepository coursePlaceRepository;
+    private final MemoryPhotoRepository memoryPhotoRepository;
 
     /*
      * 투데이 코스 조회
@@ -69,6 +74,46 @@ public class TodayCourseService {
         course.complete();
 
         return TodayCourseConverter.toCompleteCourse(course);
+    }
+
+    /*
+     * 추억 사진 저장
+     * diary_id 는 비워둔 채 저장하고, 이후 해당 날짜의 일기가 작성될 때 연결한다.
+     */
+    @Transactional
+    public CourseResDTO.SaveMemoryPhotos saveMemoryPhotos(
+            Long userId,
+            Long courseId,
+            CourseReqDTO.SaveMemoryPhotos request
+    ) {
+        Course course = getCourseAsMember(userId, courseId);
+
+        List<String> imageUrls = extractImageUrls(request);
+        int startOrder = memoryPhotoRepository.findMaxPhotoOrderByCourseId(courseId) + 1;
+
+        List<MemoryPhoto> memoryPhotos = memoryPhotoRepository.saveAll(
+                MemoryPhotoConverter.toMemoryPhotos(course, imageUrls, startOrder)
+        );
+
+        return MemoryPhotoConverter.toSaveMemoryPhotos(memoryPhotos);
+    }
+
+    // 공백 URL 은 걸러내고, 저장할 이미지가 하나도 없으면 400 으로 응답한다.
+    private List<String> extractImageUrls(CourseReqDTO.SaveMemoryPhotos request) {
+        if (request == null || request.imageUrls() == null) {
+            throw new ProjectException(CourseErrorCode.EMPTY_MEMORY_PHOTO);
+        }
+
+        List<String> imageUrls = request.imageUrls().stream()
+                .filter(url -> url != null && !url.isBlank())
+                .map(String::trim)
+                .toList();
+
+        if (imageUrls.isEmpty()) {
+            throw new ProjectException(CourseErrorCode.EMPTY_MEMORY_PHOTO);
+        }
+
+        return imageUrls;
     }
 
     private Course getCourseAsMember(Long userId, Long courseId) {

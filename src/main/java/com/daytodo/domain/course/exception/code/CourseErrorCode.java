@@ -6,7 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 
 /**
- * TODO(팀 확인 필요): PR #18(user-course-api)의 CourseErrorCode 를 그대로 가져온 파일입니다.
+ * TODO(팀 확인 필요): PR #18(user-course-api)의 CourseErrorCode 를 그대로 가져오고
+ * 투데이(TDY-007, TDY-008)에 필요한 코드만 아래에 추가했습니다.
  * PR #18이 develop에 머지되면 diff 확인 후 정리하면 됩니다.
  */
 @Getter
@@ -24,7 +25,10 @@ public enum CourseErrorCode implements BaseErrorCode {
     INVITE_CODE_GENERATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "INVITE_CODE_GENERATION_FAILED", "초대코드를 생성하지 못했습니다."),
 
     // 코스 종료(TDY-007)
-    INVALID_COURSE_STATUS(HttpStatus.CONFLICT, "INVALID_COURSE_STATUS", "진행 중인 코스만 종료할 수 있습니다.");
+    INVALID_COURSE_STATUS(HttpStatus.CONFLICT, "INVALID_COURSE_STATUS", "진행 중인 코스만 종료할 수 있습니다."),
+
+    // 추억 사진 저장(TDY-008)
+    EMPTY_MEMORY_PHOTO(HttpStatus.BAD_REQUEST, "INVALID_PARAMETER", "저장할 이미지가 없습니다.");
 
     private final HttpStatus status;
     private final String code;
