@@ -9,10 +9,15 @@ import java.util.List;
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
+
     Optional<User> findByIdAndUserStatus(Long id, UserStatus userStatus);
 
     List<User> findAllByUserStatusAndWithdrawnAtLessThanEqual(
             UserStatus userStatus,
             LocalDateTime withdrawnAt
     );
+
+    Optional<User> findByEmail(String email);
+
+    boolean existsByEmail(String email);
 }
