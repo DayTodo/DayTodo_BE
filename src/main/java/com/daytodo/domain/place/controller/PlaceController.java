@@ -6,6 +6,7 @@ import com.daytodo.domain.place.service.PlaceBookmarkService;
 import com.daytodo.domain.place.service.PlaceSearchService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -22,7 +23,7 @@ public class PlaceController {
 
     @GetMapping("/search")
     public PlaceResDTO.GetPlaceSearch searchPlaces(
-            @ModelAttribute @Valid PlaceReqDTO.GetPlaceSearch request
+            @ParameterObject @ModelAttribute @Valid PlaceReqDTO.GetPlaceSearch request
     ) {
         return placeSearchService.search(request);
     }
@@ -31,7 +32,7 @@ public class PlaceController {
     @GetMapping("/bookmarks")
     public PlaceResDTO.GetBookmarkList getBookmarkList(
             @RequestHeader("X-User-Id") Long userId,
-            @ModelAttribute PlaceReqDTO.GetBookmarkList request
+            @ParameterObject @ModelAttribute PlaceReqDTO.GetBookmarkList request
     ) {
         return placeBookmarkService.getBookmarkList(userId, request);
     }
