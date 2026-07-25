@@ -48,16 +48,24 @@ public class AuthMailService {
         } catch (MailException exception) {
             // 비동기로 분리되어 있으므로 여기서 실패해도 이미 커밋된 트랜잭션에는 영향 없음.
             // TODO(팀 확인 필요): 발송 실패 시 재시도 큐/알림 등 후속 처리 정책 필요.
-            String[] recipients = message.getTo();
-            String maskedTo = recipients == null ? "unknown" : maskEmail(recipients[0]);
-            log.error("메일 발송 실패: to={}", maskedTo, exception);
+            log.error("메일 발송 실패: to={}", maskedRecipient(message), exception);
         }
+    }
+
+    private String maskedRecipient(SimpleMailMessage message) {
+        String[] recipients = message.getTo();
+        if (recipients == null || recipients.length == 0
+                || recipients[0] == null || recipients[0].isBlank()) {
+            return "unknown";
+        }
+        return maskEmail(recipients[0]);
     }
 
     private String maskEmail(String email) {
         int atIndex = email.indexOf('@');
-        if (atIndex <= 1) {
-            return "***" + email.substring(atIndex);
+        if (atIndex <= 0) {
+            // '@'가 없거나 맨 앞에 있는 등 정상적인 이메일 형식이 아니면 전부 마스킹 처리한다.
+            return "***";
         }
         return email.charAt(0) + "***" + email.substring(atIndex);
     }

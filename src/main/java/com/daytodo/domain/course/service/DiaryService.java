@@ -121,13 +121,15 @@ public class DiaryService {
         List<CoursePlace> coursePlaces = coursePlaceRepository
                 .findAllByCourseIdOrderByPlaceOrderAsc(course.getCourseId());
 
-        List<Long> placeIds = coursePlaces.stream().map(CoursePlace::getPlaceId).toList();
+        List<Long> placeIds = coursePlaces.stream()
+                .map(cp -> cp.getPlace().getPlaceId())
+                .toList();
         Map<Long, Place> placesById = placeRepository.findAllById(placeIds).stream()
                 .collect(Collectors.toMap(Place::getPlaceId, Function.identity()));
 
         List<DiaryResponse.CoursePlaceInfo> places = coursePlaces.stream()
                 .map(coursePlace -> {
-                    Place place = placesById.get(coursePlace.getPlaceId());
+                    Place place = placesById.get(coursePlace.getPlace().getPlaceId());
                     return new DiaryResponse.CoursePlaceInfo(
                             place.getPlaceId(),
                             place.getPlaceName(),
