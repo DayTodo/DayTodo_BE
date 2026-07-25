@@ -10,6 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -21,7 +22,15 @@ import lombok.NoArgsConstructor;
  * 필드/제약조건은 팀과 한번 맞춰보는 게 좋습니다.
  */
 @Entity
-@Table(name = "memory_photo")
+@Table(
+        name = "memory_photo",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_memory_photo_diary_id_photo_order",
+                        columnNames = {"diary_id", "photo_order"}
+                )
+        }
+)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MemoryPhoto extends BaseCreatedEntity {

@@ -1,6 +1,8 @@
 package com.daytodo.domain.auth.client;
 
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
@@ -14,8 +16,12 @@ import org.springframework.web.client.RestClient;
 public class NaverApiClient {
 
     private static final String NAVER_PROFILE_URL = "https://openapi.naver.com/v1/nid/me";
+    private static final int CONNECT_TIMEOUT_MILLIS = 3000;
+    private static final int READ_TIMEOUT_MILLIS = 5000;
 
-    private final RestClient restClient = RestClient.create();
+    private final RestClient restClient = RestClient.builder()
+            .requestFactory(clientHttpRequestFactory())
+            .build();
 
     public NaverProfileResponse getProfile(String naverAccessToken) {
         return restClient.get()
@@ -23,6 +29,13 @@ public class NaverApiClient {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + naverAccessToken)
                 .retrieve()
                 .body(NaverProfileResponse.class);
+    }
+
+    private ClientHttpRequestFactory clientHttpRequestFactory() {
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(CONNECT_TIMEOUT_MILLIS);
+        factory.setReadTimeout(READ_TIMEOUT_MILLIS);
+        return factory;
     }
 
     public record NaverProfileResponse(String resultcode, String message, Response response) {
