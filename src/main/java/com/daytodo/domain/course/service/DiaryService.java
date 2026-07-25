@@ -25,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -92,7 +93,11 @@ public class DiaryService {
 
     public DiaryResponse.MemoryByDate getMemoryByDate(Long userId, LocalDate date) {
         getActiveUser(userId);
-        Diary diary = diaryRepository.findByUserIdAndDiaryDate(userId, date)
+        // 같은 날짜에 완료된 코스가 여러 개면 일기가 여러 건 생길 수 있어 List로 조회하고,
+        // 그중 가장 최근에 생성된 일기를 대표로 반환한다 (단건 Optional 조회 시 500 방지).
+        List<Diary> diaries = diaryRepository.findAllByUserIdAndDiaryDate(userId, date);
+        Diary diary = diaries.stream()
+                .max(Comparator.comparing(Diary::getCreatedAt))
                 .orElseThrow(() -> new ProjectException(DiaryErrorCode.DIARY_NOT_FOUND));
         List<MemoryPhoto> photos = memoryPhotoRepository.findAllByDiary_IdOrderByPhotoOrderAsc(diary.getId());
 

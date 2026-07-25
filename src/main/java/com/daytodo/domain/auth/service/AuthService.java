@@ -21,9 +21,11 @@ import com.daytodo.global.apiPayload.exception.ProjectException;
 import com.daytodo.global.security.jwt.JwtProperties;
 import com.daytodo.global.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestClientException;
 
 import java.security.SecureRandom;
 import java.time.Clock;
@@ -68,13 +70,22 @@ public class AuthService {
         String nickname = (request.nickname() == null || request.nickname().isBlank())
                 ? generateDefaultNickname()
                 : request.nickname();
-        User user = userRepository.save(new User(
-                request.email(),
-                passwordEncoder.encode(request.password()),
-                nickname,
-                null,
-                LoginType.LOCAL
-        ));
+
+        User user;
+        try {
+            // existsByEmail 체크와 저장 사이의 동시 요청(TOCTOU)으로 유니크 제약이 걸릴 수 있어
+            // saveAndFlush로 즉시 반영해 여기서 바로 잡아낸다.
+            user = userRepository.saveAndFlush(new User(
+                    request.email(),
+                    passwordEncoder.encode(request.password()),
+                    nickname,
+                    null,
+                    LoginType.LOCAL
+            ));
+        } catch (DataIntegrityViolationException exception) {
+            throw new ProjectException(AuthErrorCode.EMAIL_DUPLICATED);
+        }
+
         // 이메일 인증 전까지는 INACTIVE 상태로 두고, 인증 완료 시 ACTIVE로 전환한다.
         user.changeStatus(UserStatus.INACTIVE);
         issueEmailVerificationToken(user);
@@ -85,15 +96,19 @@ public class AuthService {
     public AuthResponse.Login login(AuthRequest.Login request) {
         User user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new ProjectException(AuthErrorCode.INVALID_CREDENTIALS));
+
+        // 비밀번호 확인을 상태 체크보다 먼저 해서, 틀린 비밀번호와 탈퇴/미인증 상태를
+        // 외부에서 구분할 수 없도록 한다 (계정 존재 여부 유추 방지).
+        // 소셜 전용 계정(password null)도 여기서 함께 걸러진다.
+        if (user.getPassword() == null || !passwordEncoder.matches(request.password(), user.getPassword())) {
+            // TODO 실패 횟수 증가 + 잠금 로직 연결 (위 TODO 참고)
+            throw new ProjectException(AuthErrorCode.INVALID_CREDENTIALS);
+        }
         if (user.getUserStatus() == UserStatus.WITHDRAWN) {
             throw new ProjectException(AuthErrorCode.WITHDRAWN_USER);
         }
         if (user.getUserStatus() == UserStatus.INACTIVE) {
             throw new ProjectException(AuthErrorCode.EMAIL_NOT_VERIFIED);
-        }
-        if (!passwordEncoder.matches(request.password(), user.getPassword())) {
-            // TODO 실패 횟수 증가 + 잠금 로직 연결 (위 TODO 참고)
-            throw new ProjectException(AuthErrorCode.INVALID_CREDENTIALS);
         }
         return issueLoginResponse(user);
     }
@@ -148,7 +163,7 @@ public class AuthService {
 
     @Transactional
     public AuthResponse.SocialLink linkNaverAccount(Long userId, AuthRequest.SocialLink request) {
-        SocialProvider provider = SocialProvider.valueOf(request.provider().toUpperCase());
+        SocialProvider provider = parseProvider(request.provider());
         User user = userRepository.findByIdAndUserStatus(userId, UserStatus.ACTIVE)
                 .orElseThrow(() -> new ProjectException(AuthErrorCode.WITHDRAWN_USER));
 
@@ -198,6 +213,10 @@ public class AuthService {
     public void requestPasswordReset(AuthRequest.ResetPasswordRequest request) {
         User user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new ProjectException(AuthErrorCode.EMAIL_NOT_FOUND));
+        // 네이버 전용 계정(password=null)이 재설정으로 로컬 비밀번호를 새로 갖게 되는 것을 방지한다.
+        if (user.getLoginType() != LoginType.LOCAL) {
+            throw new ProjectException(AuthErrorCode.SOCIAL_ACCOUNT_PASSWORD_RESET_NOT_ALLOWED);
+        }
         String code = generateResetCode();
         LocalDateTime expiredAt = LocalDateTime.now(clock).plusMinutes(PASSWORD_RESET_EXPIRY_MINUTES);
         passwordResetTokenRepository.findById(user.getId())
@@ -212,6 +231,9 @@ public class AuthService {
     public void resetPassword(AuthRequest.ResetPassword request) {
         User user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new ProjectException(AuthErrorCode.EMAIL_NOT_FOUND));
+        if (user.getLoginType() != LoginType.LOCAL) {
+            throw new ProjectException(AuthErrorCode.SOCIAL_ACCOUNT_PASSWORD_RESET_NOT_ALLOWED);
+        }
         PasswordResetToken saved = passwordResetTokenRepository.findById(user.getId())
                 .orElseThrow(() -> new ProjectException(AuthErrorCode.INVALID_RESET_CODE));
         if (saved.isExpired(LocalDateTime.now(clock))) {
@@ -241,8 +263,22 @@ public class AuthService {
         return String.valueOf(100000 + new SecureRandom().nextInt(900000));
     }
 
+    private SocialProvider parseProvider(String provider) {
+        try {
+            return SocialProvider.valueOf(provider.toUpperCase());
+        } catch (IllegalArgumentException exception) {
+            throw new ProjectException(AuthErrorCode.INVALID_PROVIDER);
+        }
+    }
+
     private NaverApiClient.NaverProfileResponse fetchNaverProfile(String naverAccessToken) {
-        NaverApiClient.NaverProfileResponse profile = naverApiClient.getProfile(naverAccessToken);
+        NaverApiClient.NaverProfileResponse profile;
+        try {
+            profile = naverApiClient.getProfile(naverAccessToken);
+        } catch (RestClientException exception) {
+            // 네이버 API가 4xx/5xx로 응답하면 RestClient가 예외를 던지므로 여기서 잡아서 변환한다.
+            throw new ProjectException(AuthErrorCode.NAVER_API_ERROR);
+        }
         if (profile == null || !"00".equals(profile.resultcode())) {
             throw new ProjectException(AuthErrorCode.NAVER_API_ERROR);
         }

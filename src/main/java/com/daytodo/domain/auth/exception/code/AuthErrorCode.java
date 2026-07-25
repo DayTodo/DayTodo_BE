@@ -16,6 +16,8 @@ public enum AuthErrorCode implements BaseErrorCode {
     WITHDRAWN_USER(HttpStatus.FORBIDDEN, "WITHDRAWN_USER", "탈퇴한 계정입니다."),
     SOCIAL_ACCOUNT_ALREADY_LINKED(HttpStatus.CONFLICT, "SOCIAL_ACCOUNT_ALREADY_LINKED", "이미 다른 계정에 연동된 소셜 계정입니다."),
     ALREADY_LINKED_SAME_PROVIDER(HttpStatus.CONFLICT, "ALREADY_LINKED_SAME_PROVIDER", "이미 해당 provider로 연동된 계정이 있습니다."),
+    INVALID_PROVIDER(HttpStatus.BAD_REQUEST, "INVALID_PROVIDER", "지원하지 않는 provider입니다."),
+    SOCIAL_ACCOUNT_PASSWORD_RESET_NOT_ALLOWED(HttpStatus.CONFLICT, "SOCIAL_ACCOUNT_PASSWORD_RESET_NOT_ALLOWED", "소셜 로그인 계정은 비밀번호 재설정을 지원하지 않습니다."),
     NAVER_API_ERROR(HttpStatus.BAD_GATEWAY, "NAVER_API_ERROR", "네이버 인증 서버와 통신 중 오류가 발생했습니다."),
     EMAIL_NOT_VERIFIED(HttpStatus.FORBIDDEN, "EMAIL_NOT_VERIFIED", "이메일 인증이 완료되지 않았습니다."),
     ALREADY_VERIFIED(HttpStatus.CONFLICT, "ALREADY_VERIFIED", "이미 인증이 완료된 계정입니다."),
