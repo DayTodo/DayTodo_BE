@@ -8,15 +8,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Tag(name = "Course")
 @RestController
@@ -67,4 +63,45 @@ public class CourseController {
     ) {
         return courseService.joinCourse(userId, request);
     }
+
+    @Operation(summary = "코스 편집")
+    @PatchMapping("/{courseId}/setting")
+    public CourseResponse.Setting updateCourseSetting(
+            @PathVariable Long courseId,
+            @RequestHeader(TEMPORARY_USER_ID_HEADER) Long userId,
+            @Valid @RequestBody CourseRequest.Setting request
+    ) {
+        return courseService.updateCourseSetting(courseId, userId, request);
+    }
+
+    @Operation(summary = "코스 장소 리스트 조회")
+    @GetMapping("/{courseId}/places")
+    public List<CourseResponse.CoursePlace> getCoursePlaces(
+            @PathVariable Long courseId,
+            @RequestHeader(TEMPORARY_USER_ID_HEADER) Long userId
+    ) {
+        return courseService.getCoursePlaces(courseId, userId);
+    }
+
+    @Operation(summary = "코스 멤버 목록 조회")
+    @GetMapping("/{courseId}/members")
+    public List<CourseResponse.CourseMember> getCourseMembers(
+            @PathVariable Long courseId,
+            @RequestHeader(TEMPORARY_USER_ID_HEADER) Long userId
+    ) {
+        return courseService.getCourseMembers(courseId, userId);
+    }
+
+    @Operation(summary = "코스 멤버 강퇴")
+    @DeleteMapping("/{courseId}/members/{memberId}")
+    public void kickCourseMember(
+            @PathVariable Long courseId,
+            // URL 호환성을 위해 memberId라는 경로명은 유지한다.
+            // 이 값은 CourseMember PK가 아니라 강퇴 대상 사용자의 userId다.
+            @PathVariable Long memberId,
+            @RequestHeader(TEMPORARY_USER_ID_HEADER) Long userId
+    ) {
+        courseService.kickCourseMember(courseId, memberId, userId);
+    }
+
 }

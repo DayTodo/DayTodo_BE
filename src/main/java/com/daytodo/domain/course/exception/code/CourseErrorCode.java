@@ -17,7 +17,14 @@ public enum CourseErrorCode implements BaseErrorCode {
     INVALID_CALENDAR_DATE(HttpStatus.BAD_REQUEST, "INVALID_CALENDAR_DATE", "유효하지 않은 연도 또는 월입니다."),
     PAST_COURSE_DATE(HttpStatus.BAD_REQUEST, "PAST_COURSE_DATE", "오늘 이전 날짜로 코스를 생성할 수 없습니다."),
     INVALID_PRICE_RANGE(HttpStatus.BAD_REQUEST, "INVALID_PRICE_RANGE", "최대 금액은 최소 금액보다 작을 수 없습니다."),
-    INVITE_CODE_GENERATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "INVITE_CODE_GENERATION_FAILED", "초대코드를 생성하지 못했습니다.");
+    INVITE_CODE_GENERATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "INVITE_CODE_GENERATION_FAILED", "초대코드를 생성하지 못했습니다."),
+
+    // ==============================================================================
+    COURSE_SAME_DAY_EDIT_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "COURSE_SAME_DAY_EDIT_NOT_ALLOWED", "당일 코스는 수정할 수 없습니다."),
+    COURSE_DATE_CHANGE_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "COURSE_DATE_CHANGE_NOT_ALLOWED", "진행 중인 코스의 날짜는 변경할 수 없습니다."),
+    COURSE_ACCESS_DENIED(HttpStatus.FORBIDDEN, "COURSE_ACCESS_DENIED", "코스에 대한 접근 권한이 없습니다."),
+    COURSE_MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "COURSE_MEMBER_NOT_FOUND", "해당 코스 멤버를 찾을 수 없습니다."),
+    OWNER_CANNOT_BE_REMOVED(HttpStatus.BAD_REQUEST, "OWNER_CANNOT_BE_REMOVED", "방장은 강퇴할 수 없습니다.");
 
     private final HttpStatus status;
     private final String code;
