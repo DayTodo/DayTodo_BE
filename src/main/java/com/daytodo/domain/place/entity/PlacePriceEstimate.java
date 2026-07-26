@@ -1,6 +1,9 @@
 package com.daytodo.domain.place.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Min;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -19,7 +22,7 @@ public class PlacePriceEstimate {
     @JoinColumn(name = "place_id", nullable = false, unique = true)
     private Place place;
 
-    // 최소값 0원
+    @Min(0) // 최소값 0원
     @Column (name = "min_price", nullable = false)
     private int minPrice;
 
@@ -28,6 +31,8 @@ public class PlacePriceEstimate {
     private int maxPrice;
 
     // 추론 신뢰도 (0~1)
+    @DecimalMin("0.0")
+    @DecimalMax("1.0")
     @Column (name = "confidence", nullable = false)
     private double confidence;
 

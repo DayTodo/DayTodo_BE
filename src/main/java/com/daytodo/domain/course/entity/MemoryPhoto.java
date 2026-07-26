@@ -7,7 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
- * 코스의 추억 사진 (TDY-008).
+ * 코스의 추억 사진
  *
  * TODO(팀 확인 필요): PR #21(auth-diary-api)에도 같은 이름의 엔티티가 있습니다.
  * 그쪽은 diary_id 가 NOT NULL 이지만, ERD와 TDY-008 명세는
@@ -29,7 +29,7 @@ public class MemoryPhoto {
     @JoinColumn(name = "course_id", nullable = false)
     private Course course;
 
-    // 사진 저장 시점에는 비워두고, 해당 날짜의 일기가 작성될 때 연결한다.
+    // 사진 저장 시점에는 비워두고, 해당 날짜의 일기가 작성될 때 연결
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "diary_id")
     private Diary diary;

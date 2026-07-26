@@ -5,11 +5,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 
-/**
- * TODO(팀 확인 필요): PR #18(user-course-api)의 CourseErrorCode 를 그대로 가져오고
- * 투데이(TDY-007, TDY-008)에 필요한 코드만 아래에 추가했습니다.
- * PR #18이 develop에 머지되면 diff 확인 후 정리하면 됩니다.
- */
 @Getter
 @RequiredArgsConstructor
 public enum CourseErrorCode implements BaseErrorCode {
@@ -23,12 +18,13 @@ public enum CourseErrorCode implements BaseErrorCode {
     PAST_COURSE_DATE(HttpStatus.BAD_REQUEST, "PAST_COURSE_DATE", "오늘 이전 날짜로 코스를 생성할 수 없습니다."),
     INVALID_PRICE_RANGE(HttpStatus.BAD_REQUEST, "INVALID_PRICE_RANGE", "최대 금액은 최소 금액보다 작을 수 없습니다."),
     INVITE_CODE_GENERATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "INVITE_CODE_GENERATION_FAILED", "초대코드를 생성하지 못했습니다."),
-
-    // 코스 종료(TDY-007)
     INVALID_COURSE_STATUS(HttpStatus.CONFLICT, "INVALID_COURSE_STATUS", "진행 중인 코스만 종료할 수 있습니다."),
-
-    // 추억 사진 저장(TDY-008)
     EMPTY_MEMORY_PHOTO(HttpStatus.BAD_REQUEST, "INVALID_PARAMETER", "저장할 이미지가 없습니다.");
+    COURSE_SAME_DAY_EDIT_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "COURSE_SAME_DAY_EDIT_NOT_ALLOWED", "당일 코스는 수정할 수 없습니다."),
+    COURSE_DATE_CHANGE_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "COURSE_DATE_CHANGE_NOT_ALLOWED", "진행 중인 코스의 날짜는 변경할 수 없습니다."),
+    COURSE_ACCESS_DENIED(HttpStatus.FORBIDDEN, "COURSE_ACCESS_DENIED", "코스에 대한 접근 권한이 없습니다."),
+    COURSE_MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "COURSE_MEMBER_NOT_FOUND", "해당 코스 멤버를 찾을 수 없습니다."),
+    OWNER_CANNOT_BE_REMOVED(HttpStatus.BAD_REQUEST, "OWNER_CANNOT_BE_REMOVED", "방장은 강퇴할 수 없습니다.");
 
     private final HttpStatus status;
     private final String code;

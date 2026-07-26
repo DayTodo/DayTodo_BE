@@ -83,7 +83,7 @@ public class Course extends BaseEntity {
         this.courseStatus = CourseStatus.PLANNING;
     }
 
-    // 코스 종료 (TDY-007)
+    // 코스 종료
     public void complete() {
         this.courseStatus = CourseStatus.COMPLETED;
         this.completedAt = LocalDateTime.now();

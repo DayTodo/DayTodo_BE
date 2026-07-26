@@ -2,6 +2,9 @@ spring:
   application:
     name: "daytodo"
 
+  config:
+    import: optional:file:.env[.properties]
+
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: ${DB_URL}
@@ -18,9 +21,30 @@ spring:
       hibernate:
         format_sql: true
 
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 3000
+          timeout: 5000
+          writetimeout: 5000
+
 jwt:
   token:
     secretKey: ${JWT_SECRET_KEY}
     expiration:
       access: 1800000    # 30분
       refresh: 1209600000 # 14일
+
+naver:
+  base-url: https://openapi.naver.com
+  client-id: ${NAVER_CLIENT_ID}
+  client-secret: ${NAVER_CLIENT_SECRET}

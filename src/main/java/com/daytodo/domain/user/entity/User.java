@@ -100,5 +100,10 @@ public class User extends BaseEntity {
         this.userStatus = userStatus;
     }
 
+    public void withdraw(LocalDateTime withdrawnAt) {
+        this.userStatus = UserStatus.WITHDRAWN;
+        this.withdrawnAt = withdrawnAt;
+    }
+
 
 }

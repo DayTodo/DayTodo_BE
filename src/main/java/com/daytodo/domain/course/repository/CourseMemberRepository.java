@@ -6,15 +6,19 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
+
 
 public interface CourseMemberRepository extends JpaRepository<CourseMember, Long> {
+    Optional<CourseMember> findByCourseCourseIdAndUserId(Long courseId, Long userId);
 
-    boolean existsByCourse_CourseIdAndUser_IdAndMemberStatus(
-            Long courseId,
-            Long userId,
-            MemberStatus memberStatus
-    );
+    boolean existsByCourseCourseIdAndUserIdAndMemberStatus(Long courseId, Long userId, MemberStatus memberStatus);
+
+    List<CourseMember> findByCourseCourseIdAndMemberStatus(Long courseId, MemberStatus memberStatus);
+
+    Optional<CourseMember> findByCourseCourseIdAndUserIdAndMemberStatus(Long courseId, Long targetUserId, MemberStatus memberStatus);
 
     /*
      * 코스 멤버 목록 조회
@@ -30,5 +34,21 @@ public interface CourseMemberRepository extends JpaRepository<CourseMember, Long
     List<CourseMember> findMembersByCourseId(
             @Param("courseId") Long courseId,
             @Param("memberStatus") MemberStatus memberStatus
+    );
+           
+    interface CourseCount {
+        Long getCourseId();
+        long getCount();
+    }
+
+    @Query("""
+            select cm.course.courseId as courseId, count(cm) as count
+            from CourseMember cm
+            where cm.course.courseId in :courseIds and cm.memberStatus = :status
+            group by cm.course.courseId
+            """)
+    List<CourseCount> countMembersByCourseIds(
+            @Param("courseIds") Collection<Long> courseIds,
+            @Param("status") MemberStatus status
     );
 }
