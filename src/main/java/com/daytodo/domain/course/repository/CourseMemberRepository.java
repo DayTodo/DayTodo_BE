@@ -13,11 +13,11 @@ import java.util.Optional;
 public interface CourseMemberRepository extends JpaRepository<CourseMember, Long> {
     Optional<CourseMember> findByCourseCourseIdAndUserId(Long courseId, Long userId);
 
-    boolean existsByCourseIdAndUserIdAndMemberStatus(Long courseId, Long userId, MemberStatus memberStatus);
+    boolean existsByCourseCourseIdAndUserIdAndMemberStatus(Long courseId, Long userId, MemberStatus memberStatus);
 
-    List<CourseMember> findByCourseIdAndMemberStatus(Long courseId, MemberStatus memberStatus);
+    List<CourseMember> findByCourseCourseIdAndMemberStatus(Long courseId, MemberStatus memberStatus);
 
-    Optional<Object> findByCourseIdAndUserIdAndMemberStatus(Long courseId, Long targetUserId, MemberStatus memberStatus);
+    Optional<CourseMember> findByCourseCourseIdAndUserIdAndMemberStatus(Long courseId, Long targetUserId, MemberStatus memberStatus);
 
     interface CourseCount {
         Long getCourseId();
