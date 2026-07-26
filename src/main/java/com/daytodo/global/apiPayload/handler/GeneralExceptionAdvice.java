@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.stream.Collectors;
 
@@ -37,6 +38,16 @@ public class GeneralExceptionAdvice {
         BaseErrorCode code = GeneralErrorCode.VALIDATION_ERROR;
         return ResponseEntity.status(code.getStatus())
                 .body(ErrorResponse.of(code, message));
+    }
+
+    // 매핑되지 않은 경로 요청 예외
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNoResourceFoundException(
+            NoResourceFoundException e
+    ) {
+        BaseErrorCode code = GeneralErrorCode.NOT_FOUND;
+        return ResponseEntity.status(code.getStatus())
+                .body(ErrorResponse.of(code));
     }
 
     // 그 외에 정의되지 않은 모든 예외 처리

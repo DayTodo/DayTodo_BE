@@ -8,38 +8,23 @@ import org.springframework.http.HttpStatus;
 @Getter
 @RequiredArgsConstructor
 public enum CourseErrorCode implements BaseErrorCode {
+    COURSE_NOT_FOUND(HttpStatus.NOT_FOUND, "COURSE_NOT_FOUND", "코스를 찾을 수 없습니다."),
+    INVALID_INVITE_CODE(HttpStatus.BAD_REQUEST, "INVALID_INVITE_CODE", "올바르지 않은 초대코드입니다."),
+    EXPIRED_INVITE_CODE(HttpStatus.BAD_REQUEST, "EXPIRED_INVITE_CODE", "만료된 초대코드입니다."),
+    ALREADY_COURSE_MEMBER(HttpStatus.CONFLICT, "ALREADY_COURSE_MEMBER", "이미 참가한 코스입니다."),
+    COURSE_NOT_JOINABLE(HttpStatus.CONFLICT, "COURSE_NOT_JOINABLE", "참가할 수 없는 코스입니다."),
+    INVALID_COURSE_PERIOD(HttpStatus.BAD_REQUEST, "INVALID_COURSE_PERIOD", "조회 시작일은 종료일보다 늦을 수 없습니다."),
+    INVALID_CALENDAR_DATE(HttpStatus.BAD_REQUEST, "INVALID_CALENDAR_DATE", "유효하지 않은 연도 또는 월입니다."),
+    PAST_COURSE_DATE(HttpStatus.BAD_REQUEST, "PAST_COURSE_DATE", "오늘 이전 날짜로 코스를 생성할 수 없습니다."),
+    INVALID_PRICE_RANGE(HttpStatus.BAD_REQUEST, "INVALID_PRICE_RANGE", "최대 금액은 최소 금액보다 작을 수 없습니다."),
+    INVITE_CODE_GENERATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "INVITE_CODE_GENERATION_FAILED", "초대코드를 생성하지 못했습니다."),
 
-    INVALID_COURSE_REQUEST(HttpStatus.BAD_REQUEST,
-            "INVALID_COURSE_REQUEST",
-            "코스 수정 요청값이 올바르지 않습니다."),
-    INVALID_PRICE_RANGE(HttpStatus.BAD_REQUEST,
-            "INVALID_PRICE_RANGE",
-            "최소 가격은 최대 가격보다 클 수 없습니다."),
-    INVALID_COURSE_ID(HttpStatus.BAD_REQUEST,
-            "INVALID_COURSE_ID",
-            "잘못된 코스 ID입니다."),
-    COURSE_NOT_FOUND(HttpStatus.NOT_FOUND,
-            "COURSE_NOT_FOUND",
-            "존재하지 않는 코스입니다."),
-    COURSE_DATE_CHANGE_NOT_ALLOWED(HttpStatus.CONFLICT,
-            "COURSE_DATE_CHANGE_NOT_ALLOWED",
-            "진행 중인 코스는 날짜를 수정할 수 없습니다."),
-    COURSE_ACCESS_DENIED(HttpStatus.FORBIDDEN,
-            "COURSE_ACCESS_DENIED",
-            "코스에 접근할 권한이 없습니다."),
-    INVALID_MEMBER(HttpStatus.BAD_REQUEST,
-            "INVALID_MEMBER",
-            "잘못된 멤버 요청입니다."),
-    COURSE_MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND,
-            "COURSE_MEMBER_NOT_FOUND",
-            "해당 코스에 참여 중인 멤버를 찾을 수 없습니다."),
-    OWNER_CANNOT_BE_REMOVED(HttpStatus.CONFLICT,
-            "OWNER_CANNOT_BE_REMOVED",
-            "방장은 강퇴할 수 없습니다."),
-    COURSE_SAME_DAY_EDIT_NOT_ALLOWED(HttpStatus.FORBIDDEN,
-            "COURSE_SAME_DAY_EDIT_NOT_ALLOWED",
-            "당일에는 코스를 수정할 수 없습니다."),
-    ;
+    // 👇 CourseManageService 동작을 위해 새로 추가된 에러 코드들
+    COURSE_SAME_DAY_EDIT_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "COURSE_SAME_DAY_EDIT_NOT_ALLOWED", "당일 코스는 수정할 수 없습니다."),
+    COURSE_DATE_CHANGE_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "COURSE_DATE_CHANGE_NOT_ALLOWED", "진행 중인 코스의 날짜는 변경할 수 없습니다."),
+    COURSE_ACCESS_DENIED(HttpStatus.FORBIDDEN, "COURSE_ACCESS_DENIED", "해당 코스에 대한 권한이 없습니다."),
+    COURSE_MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "COURSE_MEMBER_NOT_FOUND", "해당 코스의 멤버를 찾을 수 없습니다."),
+    OWNER_CANNOT_BE_REMOVED(HttpStatus.BAD_REQUEST, "OWNER_CANNOT_BE_REMOVED", "코스 방장은 강퇴할 수 없습니다.");
 
     private final HttpStatus status;
     private final String code;

@@ -24,7 +24,9 @@ public class CourseResDto {
             return new SettingRes(
                     course.getCourseId(),
                     course.getCourseName(),
-                    course.getRegionId(),
+
+                    course.getRegion().getRegionId(),
+
                     course.getCourseDate(),
                     course.getMinPrice(),
                     course.getMaxPrice(),
@@ -43,8 +45,13 @@ public class CourseResDto {
         public static CoursePlaceRes from(CoursePlace coursePlace) {
             return new CoursePlaceRes(
                     coursePlace.getCoursePlaceId(),
-                    coursePlace.getPlaceId(),
-                    null, // TODO: Place Repository 연동 후 placeName 채우기
+
+                    // Place 엔티티의 placeId 필드를 가져옵니다.
+                    coursePlace.getPlace().getPlaceId(),
+
+                    // Place 엔티티의 placeName 필드를 가져옵니다. (TODO 해결완료!)
+                    coursePlace.getPlace().getPlaceName(),
+
                     coursePlace.getPlaceOrder()
             );
         }
@@ -52,15 +59,14 @@ public class CourseResDto {
 
     // [코스 구성] 코스 멤버 목록 조회
     public record CourseMemberRes(
-            // URL의 {memberId}로 전달하는 값. CourseMember PK가 아닌 userId다.
             Long memberId,
             String nickname,
             MemberRole memberRole
     ) {
         public static CourseMemberRes from(CourseMember courseMember) {
             return new CourseMemberRes(
-                    courseMember.getUserId(),
-                    null, // TODO: User Repository 연동 후 nickname 채우기
+                    courseMember.getUser().getId(),
+                    courseMember.getUser().getNickname(),
                     courseMember.getMemberRole()
             );
         }

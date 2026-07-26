@@ -27,6 +27,7 @@ import lombok.NoArgsConstructor;
                 )
         }
 )
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class UserInterestRegion {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

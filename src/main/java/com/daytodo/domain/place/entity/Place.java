@@ -1,6 +1,7 @@
 package com.daytodo.domain.place.entity;
 
 import com.daytodo.domain.common.BaseEntity;
+import com.daytodo.domain.region.entity.Region;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,8 +16,9 @@ public class Place extends BaseEntity {
     @Column (name = "place_id",  nullable = false)
     private Long placeId;
 
-    @Column (name = "region_id")
-    private Long regionId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "region_id")
+    private Region region;
 
     @Column (name = "naver_place_id", nullable = false, unique = true, length = 100)
     private String naverPlaceId;

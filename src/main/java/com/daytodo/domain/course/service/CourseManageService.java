@@ -12,6 +12,8 @@ import com.daytodo.domain.course.exception.code.CourseErrorCode;
 import com.daytodo.domain.course.repository.CourseMemberRepository;
 import com.daytodo.domain.course.repository.CourseRepository;
 import com.daytodo.domain.course.repository.CoursePlaceRepository;
+import com.daytodo.domain.region.entity.Region;
+import com.daytodo.domain.region.repository.RegionRepository;
 import com.daytodo.global.apiPayload.exception.ProjectException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,7 @@ public class CourseManageService {
     private final CourseRepository courseRepository;
     private final CoursePlaceRepository coursePlaceRepository;
     private final CourseMemberRepository courseMemberRepository;
+    private final RegionRepository regionRepository;
 
     @Transactional
     public CourseResDto.SettingRes updateCourseSetting(Long courseId, Long userId, CourseReqDto.SettingReq request) {
@@ -34,26 +37,32 @@ public class CourseManageService {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ProjectException(CourseErrorCode.COURSE_NOT_FOUND));
 
-        // TODO: 인증/인가 붙일 때 - course.getOwnerId().equals(userId) 검증 추가
+        // TODO: 인증/인가 붙일 때 - course.getOwner().getId().equals(userId) 등으로 검증 추가 필요 (Course 엔티티에 맞춰서)
 
         validateSameDayEditNotAllowed(course);          // PLN-001: 당일 코스 수정 불가
         validateDateChange(course, request.courseDate());
         validatePriceRange(request.minPrice(), request.maxPrice());
 
-        // PLN-001: 가격대·지역 변경 시 추천 데이터 리셋 여부 판단 (값 변경 전에 비교해야 함)
         boolean isPriceChanged = !course.getMinPrice().equals(request.minPrice())
                 || !course.getMaxPrice().equals(request.maxPrice());
-        boolean isRegionChanged = !course.getRegionId().equals(request.regionId());
+
+        boolean isRegionChanged = !course.getRegion().getRegionId().equals(request.regionId());
 
         course.setCourseName(request.courseName());
-        course.setRegionId(request.regionId());
+
+        if (isRegionChanged) {
+            Region newRegion = regionRepository.findById(request.regionId())
+                    .orElseThrow(() -> new IllegalArgumentException("해당 지역을 찾을 수 없습니다.")); // TODO: 프로젝트 내 RegionErrorCode 등 적절한 예외 코드로 변경
+            course.setRegion(newRegion);
+        }
+
         course.setCourseDate(request.courseDate());
         course.setMinPrice(request.minPrice());
         course.setMaxPrice(request.maxPrice());
         course.setParticipantType(request.participantType());
 
         if (isPriceChanged || isRegionChanged) {
-            course.resetRecommendationData(); // TODO: 실제 추천 데이터 리셋 로직으로 교체 (AI 연동 확정 후)
+            course.resetRecommendationData(); // Course 엔티티에 추가하신 로직 실행
         }
 
         return CourseResDto.SettingRes.from(course);
@@ -126,7 +135,7 @@ public class CourseManageService {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ProjectException(CourseErrorCode.COURSE_NOT_FOUND));
 
-        CourseMember requester = courseMemberRepository
+        CourseMember requester = (CourseMember) courseMemberRepository
                 .findByCourseIdAndUserIdAndMemberStatus(courseId, userId, MemberStatus.JOINED)
                 .orElseThrow(() -> new ProjectException(CourseErrorCode.COURSE_ACCESS_DENIED));
 
@@ -134,7 +143,7 @@ public class CourseManageService {
             throw new ProjectException(CourseErrorCode.COURSE_ACCESS_DENIED);
         }
 
-        CourseMember target = courseMemberRepository
+        CourseMember target = (CourseMember) courseMemberRepository
                 .findByCourseIdAndUserIdAndMemberStatus(courseId, targetUserId, MemberStatus.JOINED)
                 .orElseThrow(() -> new ProjectException(CourseErrorCode.COURSE_MEMBER_NOT_FOUND));
 
