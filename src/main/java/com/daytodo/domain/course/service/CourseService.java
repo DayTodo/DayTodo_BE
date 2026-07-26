@@ -393,7 +393,8 @@ public class CourseService {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ProjectException(CourseErrorCode.COURSE_NOT_FOUND));
 
-        if (!courseMemberRepository.existsByCourseIdAndUserIdAndMemberStatus(
+        // 수정: existsByCourseId -> existsByCourseCourseId
+        if (!courseMemberRepository.existsByCourseCourseIdAndUserIdAndMemberStatus(
                 courseId, userId, MemberStatus.JOINED)) {
             throw new ProjectException(CourseErrorCode.COURSE_ACCESS_DENIED);
         }
@@ -413,13 +414,15 @@ public class CourseService {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ProjectException(CourseErrorCode.COURSE_NOT_FOUND));
 
-        if (!courseMemberRepository.existsByCourseIdAndUserIdAndMemberStatus(
+        // 수정: existsByCourseId -> existsByCourseCourseId
+        if (!courseMemberRepository.existsByCourseCourseIdAndUserIdAndMemberStatus(
                 courseId, userId, MemberStatus.JOINED)) {
             throw new ProjectException(CourseErrorCode.COURSE_ACCESS_DENIED);
         }
 
+        // 수정: findByCourseId -> findByCourseCourseId
         List<CourseMember> courseMembers =
-                courseMemberRepository.findByCourseIdAndMemberStatus(courseId, MemberStatus.JOINED);
+                courseMemberRepository.findByCourseCourseIdAndMemberStatus(courseId, MemberStatus.JOINED);
 
         // TODO: User Repository를 전달받으면 userId로 일괄 조회해 nickname을 매핑한다.
         return courseMembers.stream()
@@ -433,16 +436,18 @@ public class CourseService {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ProjectException(CourseErrorCode.COURSE_NOT_FOUND));
 
-        CourseMember requester = (CourseMember) courseMemberRepository
-                .findByCourseIdAndUserIdAndMemberStatus(courseId, userId, MemberStatus.JOINED)
+        // 수정: findByCourseId -> findByCourseCourseId
+        CourseMember requester = courseMemberRepository
+                .findByCourseCourseIdAndUserIdAndMemberStatus(courseId, userId, MemberStatus.JOINED)
                 .orElseThrow(() -> new ProjectException(CourseErrorCode.COURSE_ACCESS_DENIED));
 
         if (requester.getMemberRole() != MemberRole.OWNER) {
             throw new ProjectException(CourseErrorCode.COURSE_ACCESS_DENIED);
         }
 
-        CourseMember target = (CourseMember) courseMemberRepository
-                .findByCourseIdAndUserIdAndMemberStatus(courseId, targetUserId, MemberStatus.JOINED)
+        // 수정: findByCourseId -> findByCourseCourseId
+        CourseMember target = courseMemberRepository
+                .findByCourseCourseIdAndUserIdAndMemberStatus(courseId, targetUserId, MemberStatus.JOINED)
                 .orElseThrow(() -> new ProjectException(CourseErrorCode.COURSE_MEMBER_NOT_FOUND));
 
         if (target.getMemberRole() == MemberRole.OWNER) {
