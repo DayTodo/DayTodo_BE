@@ -12,6 +12,8 @@ public interface CoursePlaceRepository extends JpaRepository<CoursePlace, Long> 
 
     List<CoursePlace> findAllByCourseIdOrderByPlaceOrderAsc(Long courseId);
 
+    List<CoursePlace> findByCourseIdOrderByPlaceOrderAsc(Long courseId);
+
     interface CourseCount {
         Long getCourseId();
         long getCount();
