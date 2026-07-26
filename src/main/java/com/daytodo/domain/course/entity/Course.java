@@ -59,4 +59,8 @@ public class Course extends BaseEntity {
 
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
+
+    public void resetRecommendationData() {
+        // TODO: 실제 추천 데이터 리셋 로직 구현
+    }
 }

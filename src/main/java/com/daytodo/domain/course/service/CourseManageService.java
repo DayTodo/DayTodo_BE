@@ -36,8 +36,14 @@ public class CourseManageService {
 
         // TODO: 인증/인가 붙일 때 - course.getOwnerId().equals(userId) 검증 추가
 
+        validateSameDayEditNotAllowed(course);          // PLN-001: 당일 코스 수정 불가
         validateDateChange(course, request.courseDate());
         validatePriceRange(request.minPrice(), request.maxPrice());
+
+        // PLN-001: 가격대·지역 변경 시 추천 데이터 리셋 여부 판단 (값 변경 전에 비교해야 함)
+        boolean isPriceChanged = !course.getMinPrice().equals(request.minPrice())
+                || !course.getMaxPrice().equals(request.maxPrice());
+        boolean isRegionChanged = !course.getRegionId().equals(request.regionId());
 
         course.setCourseName(request.courseName());
         course.setRegionId(request.regionId());
@@ -46,7 +52,17 @@ public class CourseManageService {
         course.setMaxPrice(request.maxPrice());
         course.setParticipantType(request.participantType());
 
+        if (isPriceChanged || isRegionChanged) {
+            course.resetRecommendationData(); // TODO: 실제 추천 데이터 리셋 로직으로 교체 (AI 연동 확정 후)
+        }
+
         return CourseResDto.SettingRes.from(course);
+    }
+
+    private void validateSameDayEditNotAllowed(Course course) {
+        if (course.getCourseDate().isEqual(LocalDate.now())) {
+            throw new ProjectException(CourseErrorCode.COURSE_SAME_DAY_EDIT_NOT_ALLOWED);
+        }
     }
 
     private void validateDateChange(Course course, LocalDate newDate) {
@@ -67,17 +83,14 @@ public class CourseManageService {
     @Transactional(readOnly = true)
     public List<CourseResDto.CoursePlaceRes> getCoursePlaces(Long courseId, Long userId) {
 
-        // 1. 코스 조회
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ProjectException(CourseErrorCode.COURSE_NOT_FOUND));
 
-        // 2. 요청 사용자가 해당 코스의 멤버인지 확인
         if (!courseMemberRepository.existsByCourseIdAndUserIdAndMemberStatus(
                 courseId, userId, MemberStatus.JOINED)) {
             throw new ProjectException(CourseErrorCode.COURSE_ACCESS_DENIED);
         }
 
-        // 3. placeOrder 순으로 코스 장소 목록 조회
         List<CoursePlace> coursePlaces =
                 coursePlaceRepository.findByCourseIdOrderByPlaceOrderAsc(courseId);
 
@@ -90,17 +103,14 @@ public class CourseManageService {
     @Transactional(readOnly = true)
     public List<CourseResDto.CourseMemberRes> getCourseMembers(Long courseId, Long userId) {
 
-        // 1. 코스 조회
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ProjectException(CourseErrorCode.COURSE_NOT_FOUND));
 
-        // 2. 요청 사용자가 해당 코스의 멤버인지 확인
         if (!courseMemberRepository.existsByCourseIdAndUserIdAndMemberStatus(
                 courseId, userId, MemberStatus.JOINED)) {
             throw new ProjectException(CourseErrorCode.COURSE_ACCESS_DENIED);
         }
 
-        // 3. 참여 중인(JOINED) 멤버 목록 조회
         List<CourseMember> courseMembers =
                 courseMemberRepository.findByCourseIdAndMemberStatus(courseId, MemberStatus.JOINED);
 
@@ -113,11 +123,9 @@ public class CourseManageService {
     @Transactional
     public void kickCourseMember(Long courseId, Long targetUserId, Long userId) {
 
-        // 1. 코스 조회
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ProjectException(CourseErrorCode.COURSE_NOT_FOUND));
 
-        // 2. 요청 사용자가 해당 코스의 방장인지 확인
         CourseMember requester = courseMemberRepository
                 .findByCourseIdAndUserIdAndMemberStatus(courseId, userId, MemberStatus.JOINED)
                 .orElseThrow(() -> new ProjectException(CourseErrorCode.COURSE_ACCESS_DENIED));
@@ -126,17 +134,14 @@ public class CourseManageService {
             throw new ProjectException(CourseErrorCode.COURSE_ACCESS_DENIED);
         }
 
-        // 3. 강퇴 대상 멤버가 해당 코스에 참여 중인지 확인
         CourseMember target = courseMemberRepository
                 .findByCourseIdAndUserIdAndMemberStatus(courseId, targetUserId, MemberStatus.JOINED)
                 .orElseThrow(() -> new ProjectException(CourseErrorCode.COURSE_MEMBER_NOT_FOUND));
 
-        // 4. 방장은 강퇴할 수 없음
         if (target.getMemberRole() == MemberRole.OWNER) {
             throw new ProjectException(CourseErrorCode.OWNER_CANNOT_BE_REMOVED);
         }
 
-        // 5. 멤버 제거 (상태 변경)
         target.setMemberStatus(MemberStatus.LEFT);
     }
 }

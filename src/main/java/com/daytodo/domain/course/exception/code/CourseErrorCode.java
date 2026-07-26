@@ -36,6 +36,9 @@ public enum CourseErrorCode implements BaseErrorCode {
     OWNER_CANNOT_BE_REMOVED(HttpStatus.CONFLICT,
             "OWNER_CANNOT_BE_REMOVED",
             "방장은 강퇴할 수 없습니다."),
+    COURSE_SAME_DAY_EDIT_NOT_ALLOWED(HttpStatus.FORBIDDEN,
+            "COURSE_SAME_DAY_EDIT_NOT_ALLOWED",
+            "당일에는 코스를 수정할 수 없습니다."),
     ;
 
     private final HttpStatus status;
