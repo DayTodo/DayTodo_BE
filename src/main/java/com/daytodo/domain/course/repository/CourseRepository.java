@@ -3,15 +3,26 @@ package com.daytodo.domain.course.repository;
 import com.daytodo.domain.course.entity.Course;
 import com.daytodo.domain.course.enums.CourseStatus;
 import com.daytodo.domain.course.enums.MemberStatus;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 public interface CourseRepository extends JpaRepository<Course, Long> {
+
+    /*
+     * 추억 사진 저장처럼 코스 단위로 순번을 계산하는 임계 구역을 직렬화하기 위해
+     * 코스 행에 쓰기 락(PESSIMISTIC_WRITE)을 건다.
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select c from Course c where c.courseId = :courseId")
+    Optional<Course> findByIdForUpdate(@Param("courseId") Long courseId);
 
     List<Course> findAllByOwnerIdOrderByCreatedAtDesc(Long ownerId);
 
@@ -36,7 +47,7 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
               and cm.memberStatus = :memberStatus
               and cm.course.courseDate = :courseDate
               and cm.course.courseStatus = :courseStatus
-            order by cm.course.createdAt desc
+            order by cm.course.createdAt desc, cm.course.courseId desc
             """)
     List<Course> findMemberCoursesByDateAndStatus(
             @Param("userId") Long userId,
@@ -50,7 +61,7 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
             where cm.user.id = :userId
               and cm.memberStatus = :memberStatus
               and cm.course.courseStatus = :courseStatus
-            order by cm.course.courseDate desc
+            order by cm.course.courseDate desc, cm.course.courseId desc
             """)
     List<Course> findMemberCoursesByStatus(
             @Param("userId") Long userId,
@@ -64,7 +75,7 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
               and cm.memberStatus = :memberStatus
               and cm.course.courseStatus = :courseStatus
               and cm.course.courseDate >= :today
-            order by cm.course.createdAt desc
+            order by cm.course.createdAt desc, cm.course.courseId desc
             """)
     List<Course> findUpcomingMemberCourses(
             @Param("userId") Long userId,
@@ -80,7 +91,7 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
               and cm.memberStatus = :memberStatus
               and cm.course.courseStatus = :courseStatus
               and cm.course.courseDate between :startDate and :endDate
-            order by cm.course.courseDate desc
+            order by cm.course.courseDate desc, cm.course.courseId desc
             """)
     List<Course> findApproachingMemberCourses(
             @Param("userId") Long userId,
@@ -95,7 +106,7 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
             where cm.user.id = :userId
               and cm.memberStatus = :memberStatus
               and cm.course.courseDate between :startDate and :endDate
-            order by cm.course.courseDate asc, cm.course.createdAt desc
+            order by cm.course.courseDate asc, cm.course.createdAt desc, cm.course.courseId desc
             """)
     List<Course> findCalendarCourses(
             @Param("userId") Long userId,

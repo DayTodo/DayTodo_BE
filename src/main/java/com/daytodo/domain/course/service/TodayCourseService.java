@@ -89,6 +89,12 @@ public class TodayCourseService {
         Course course = getCourseAsMember(userId, courseId);
 
         List<String> imageUrls = extractImageUrls(request);
+
+        // 여러 사용자가 동시에 사진을 업로드해도 photo_order 가 겹치지 않도록,
+        // 순번 계산~저장 구간을 코스 행 쓰기 락으로 직렬화한다.
+        // (DB 유니크 제약(uk_memory_photo_course_id_photo_order)은 최종 방어선이다.)
+        courseRepository.findByIdForUpdate(courseId)
+                .orElseThrow(() -> new ProjectException(CourseErrorCode.COURSE_NOT_FOUND));
         int startOrder = memoryPhotoRepository.findMaxPhotoOrderByCourseId(courseId) + 1;
 
         List<MemoryPhoto> memoryPhotos = memoryPhotoRepository.saveAll(

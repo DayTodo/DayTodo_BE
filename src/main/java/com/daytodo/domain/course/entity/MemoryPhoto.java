@@ -15,7 +15,16 @@ import lombok.NoArgsConstructor;
  * ERD에 created_at 이 없어 BaseCreatedEntity 도 상속하지 않았습니다.
  */
 @Entity
-@Table(name = "memory_photo")
+@Table(
+        name = "memory_photo",
+        uniqueConstraints = {
+                // 같은 코스 내 photo_order 중복 방지 (동시 업로드 시 순번 충돌을 DB에서 최종 차단)
+                @UniqueConstraint(
+                        name = "uk_memory_photo_course_id_photo_order",
+                        columnNames = {"course_id", "photo_order"}
+                )
+        }
+)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MemoryPhoto {
