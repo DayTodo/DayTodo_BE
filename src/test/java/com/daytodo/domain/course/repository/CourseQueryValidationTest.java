@@ -35,7 +35,7 @@ class CourseQueryValidationTest {
         assertThat(courseMemberRepository.findMembersByCourseId(1L, MemberStatus.JOINED)).isEmpty();
         assertThat(coursePlaceRepository.findPlacesByCourseId(1L)).isEmpty();
         assertThat(memoryPhotoRepository.findMaxPhotoOrderByCourseId(1L)).isZero();
-        assertThat(courseMemberRepository.existsByCourse_CourseIdAndUser_IdAndMemberStatus(
+        assertThat(courseMemberRepository.existsByCourseCourseIdAndUserIdAndMemberStatus(
                 1L, 1L, MemberStatus.JOINED
         )).isFalse();
     }

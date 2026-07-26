@@ -13,6 +13,18 @@ import java.util.List;
 
 public interface CourseRepository extends JpaRepository<Course, Long> {
 
+    List<Course> findAllByOwnerIdOrderByCreatedAtDesc(Long ownerId);
+
+    List<Course> findAllByOwnerIdAndCourseDateGreaterThanEqualOrderByCreatedAtDesc(Long ownerId, LocalDate startDate);
+
+    List<Course> findAllByOwnerIdAndCourseDateLessThanEqualOrderByCreatedAtDesc(Long ownerId, LocalDate endDate);
+
+    List<Course> findAllByOwnerIdAndCourseDateBetweenOrderByCreatedAtDesc(
+            Long ownerId,
+            LocalDate startDate,
+            LocalDate endDate
+    );
+
     /*
      * 투데이 코스 조회
      * 사용자가 참여 중인 코스 중 해당 날짜의 진행 중 코스를 조회한다.
@@ -32,7 +44,24 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
             @Param("courseStatus") CourseStatus courseStatus,
             @Param("memberStatus") MemberStatus memberStatus
     );
-}
+
+    @Query("""
+            select cm.course from CourseMember cm
+            where cm.user.id = :userId
+              and cm.memberStatus = :memberStatus
+              and cm.course.courseStatus = :courseStatus
+            order by cm.course.courseDate desc
+            """)
+    List<Course> findMemberCoursesByStatus(
+            @Param("userId") Long userId,
+            @Param("memberStatus") MemberStatus memberStatus,
+            @Param("courseStatus") CourseStatus courseStatus
+    );
+
+    @Query("""
+            select cm.course from CourseMember cm
+            where cm.user.id = :userId
+              and cm.memberStatus = :memberStatus
               and cm.course.courseStatus = :courseStatus
               and cm.course.courseDate >= :today
             order by cm.course.createdAt desc

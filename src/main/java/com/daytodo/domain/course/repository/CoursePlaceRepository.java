@@ -21,10 +21,10 @@ public interface CoursePlaceRepository extends JpaRepository<CoursePlace, Long> 
             order by cp.placeOrder asc
             """)
     List<CoursePlace> findPlacesByCourseId(@Param("courseId") Long courseId);
-}
-    List<CoursePlace> findAllByCourseIdOrderByPlaceOrderAsc(Long courseId);
 
-    List<CoursePlace> findByCourseIdOrderByPlaceOrderAsc(Long courseId);
+    List<CoursePlace> findAllByCourse_CourseIdOrderByPlaceOrderAsc(Long courseId);
+
+    List<CoursePlace> findByCourse_CourseIdOrderByPlaceOrderAsc(Long courseId);
 
     interface CourseCount {
         Long getCourseId();

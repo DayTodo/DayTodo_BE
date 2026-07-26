@@ -9,7 +9,7 @@ import java.util.Optional;
 
 public interface DiaryRepository extends JpaRepository<Diary, Long> {
 
-    Optional<Diary> findByUserIdAndCourseId(Long userId, Long courseId);
+    Optional<Diary> findByUserIdAndCourse_CourseId(Long userId, Long courseId);
 
     List<Diary> findAllByUserIdAndDiaryDate(Long userId, LocalDate diaryDate);
 

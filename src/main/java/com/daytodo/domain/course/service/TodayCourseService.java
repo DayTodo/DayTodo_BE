@@ -121,7 +121,7 @@ public class TodayCourseService {
                 .orElseThrow(() -> new ProjectException(CourseErrorCode.COURSE_NOT_FOUND));
 
         // 코스 멤버가 아닌 경우도 코스 존재 여부를 노출하지 않기 위해 404 로 통일한다.
-        boolean isMember = courseMemberRepository.existsByCourse_CourseIdAndUser_IdAndMemberStatus(
+        boolean isMember = courseMemberRepository.existsByCourseCourseIdAndUserIdAndMemberStatus(
                 courseId, userId, MemberStatus.JOINED
         );
         if (!isMember) {
