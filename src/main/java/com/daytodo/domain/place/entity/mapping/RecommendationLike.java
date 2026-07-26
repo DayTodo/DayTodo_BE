@@ -1,6 +1,7 @@
 package com.daytodo.domain.place.entity.mapping;
 
 import com.daytodo.domain.common.BaseCreatedEntity;
+import com.daytodo.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -25,7 +26,7 @@ public class RecommendationLike extends BaseCreatedEntity {
     @JoinColumn(name = "recommendation_id", nullable = false)
     private PlaceRecommendation recommendation;
 
-    // user 도메인 참조 → FK 값만 보관
-    @Column (name = "user_id", nullable = false)
-    private Long userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 }

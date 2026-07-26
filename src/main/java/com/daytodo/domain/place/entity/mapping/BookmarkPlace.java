@@ -1,5 +1,6 @@
 package com.daytodo.domain.place.entity.mapping;
-import com.daytodo.domain.place.entity.BookmarkCategory;
+import com.daytodo.domain.common.BaseCreatedEntity;
+import com.daytodo.domain.place.entity.Place;
 import com.daytodo.domain.user.entity.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -30,7 +31,7 @@ import lombok.NoArgsConstructor;
         }
 )
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class BookmarkPlace {
+public class BookmarkPlace extends BaseCreatedEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "bookmark_place_id")
@@ -46,38 +47,15 @@ public class BookmarkPlace {
     )
     private User user;
 
-    /*
-     * Place 엔티티가 아직 없으므로 현재는 placeId만 저장합니다.
-     */
-    @Column(
-            name = "place_id",
-            nullable = false
-    )
-    private Long placeId;
-
-    @ManyToOne(
-            fetch = FetchType.LAZY,
-            optional = false
-    )
-    @JoinColumn(
-            name = "bookmark_category_id",
-            nullable = false
-    )
-    private BookmarkCategory bookmarkCategory;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name="place_id", nullable = false)
+    private Place place;
 
     public BookmarkPlace(
             User user,
-            Long placeId,
-            BookmarkCategory bookmarkCategory
+            Place place
     ) {
         this.user = user;
-        this.placeId = placeId;
-        this.bookmarkCategory = bookmarkCategory;
-    }
-
-    public void changeCategory(
-            BookmarkCategory bookmarkCategory
-    ) {
-        this.bookmarkCategory = bookmarkCategory;
+        this.place = place;
     }
 }

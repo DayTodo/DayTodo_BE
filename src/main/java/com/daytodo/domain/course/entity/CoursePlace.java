@@ -2,6 +2,8 @@ package com.daytodo.domain.course.entity;
 
 import com.daytodo.domain.common.BaseCreatedEntity;
 import com.daytodo.domain.course.enums.CoursePlaceStatus;
+import com.daytodo.domain.place.entity.Place;
+import com.daytodo.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,14 +23,17 @@ public class CoursePlace extends BaseCreatedEntity {
     @Column(name = "course_place_id")
     private Long coursePlaceId;
 
-    @Column(name = "course_id", nullable = false)
-    private Long courseId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "course_id", nullable = false)
+    private Course course;
 
-    @Column(name = "place_id", nullable = false)
-    private Long placeId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "place_id", nullable = false)
+    private Place place;
 
-    @Column(name = "added_by", nullable = false)
-    private Long addedBy;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "added_by")
+    private User addedBy;
 
     @Column(name = "place_order", nullable = false)
     private Integer placeOrder;

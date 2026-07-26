@@ -25,4 +25,10 @@ public class Region {
     @Enumerated(EnumType.STRING)
     @Column (name = "region_level", nullable = false, length = 20)
     private RegionLevel regionLevel;
+
+    public Region(Region parent, String regionName, RegionLevel regionLevel) {
+        this.parent = parent;
+        this.regionName = regionName;
+        this.regionLevel = regionLevel;
+    }
 }
