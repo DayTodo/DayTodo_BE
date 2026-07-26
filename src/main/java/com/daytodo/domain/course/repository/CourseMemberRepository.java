@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+
 public interface CourseMemberRepository extends JpaRepository<CourseMember, Long> {
     Optional<CourseMember> findByCourseCourseIdAndUserId(Long courseId, Long userId);
 
@@ -19,6 +20,22 @@ public interface CourseMemberRepository extends JpaRepository<CourseMember, Long
 
     Optional<CourseMember> findByCourseCourseIdAndUserIdAndMemberStatus(Long courseId, Long targetUserId, MemberStatus memberStatus);
 
+    /*
+     * 코스 멤버 목록 조회
+     * 응답의 nickname, profileImageUrl 이 필요하므로 User 를 함께 fetch 한다.
+     */
+    @Query("""
+            select cm from CourseMember cm
+            join fetch cm.user u
+            where cm.course.courseId = :courseId
+              and cm.memberStatus = :memberStatus
+            order by cm.joinedAt asc, cm.courseMemberId asc
+            """)
+    List<CourseMember> findMembersByCourseId(
+            @Param("courseId") Long courseId,
+            @Param("memberStatus") MemberStatus memberStatus
+    );
+           
     interface CourseCount {
         Long getCourseId();
         long getCount();

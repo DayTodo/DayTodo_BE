@@ -53,7 +53,7 @@ public class DiaryService {
             throw new ProjectException(DiaryErrorCode.COURSE_NOT_COMPLETED);
         }
 
-        Diary diary = diaryRepository.findByUserIdAndCourseId(userId, request.courseId())
+        Diary diary = diaryRepository.findByUserIdAndCourse_CourseId(userId, request.courseId())
                 .map(existing -> {
                     existing.writeContent(request.content());
                     return existing;
@@ -87,7 +87,7 @@ public class DiaryService {
     public DiaryResponse.Photos getPhotosByCourse(Long userId, Long courseId) {
         getActiveUser(userId);
         List<MemoryPhoto> photos = memoryPhotoRepository
-                .findAllByDiary_Course_IdAndDiary_User_IdOrderByPhotoOrderAsc(courseId, userId);
+                .findAllByDiary_Course_CourseIdAndDiary_User_IdOrderByPhotoOrderAsc(courseId, userId);
         return new DiaryResponse.Photos(courseId, toPhotoResponses(photos));
     }
 
@@ -119,7 +119,7 @@ public class DiaryService {
 
         Course course = diary.getCourse();
         List<CoursePlace> coursePlaces = coursePlaceRepository
-                .findAllByCourseIdOrderByPlaceOrderAsc(course.getCourseId());
+                .findAllByCourse_CourseIdOrderByPlaceOrderAsc(course.getCourseId());
 
         List<Long> placeIds = coursePlaces.stream()
                 .map(cp -> cp.getPlace().getPlaceId())

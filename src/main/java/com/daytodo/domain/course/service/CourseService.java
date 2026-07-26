@@ -400,7 +400,7 @@ public class CourseService {
         }
 
         List<CoursePlace> coursePlaces =
-                coursePlaceRepository.findByCourseIdOrderByPlaceOrderAsc(courseId);
+                coursePlaceRepository.findByCourse_CourseIdOrderByPlaceOrderAsc(courseId);
 
         // TODO: Place Repository를 전달받으면 placeId로 일괄 조회해 placeName을 매핑한다.
         return coursePlaces.stream()
