@@ -10,9 +10,21 @@ import java.util.List;
 
 public interface CoursePlaceRepository extends JpaRepository<CoursePlace, Long> {
 
-    List<CoursePlace> findAllByCourseIdOrderByPlaceOrderAsc(Long courseId);
+    /*
+     * 코스 장소 목록 조회 (placeOrder 순)
+     * 응답의 placeName, category 가 필요하므로 Place 를 함께 fetch
+     */
+    @Query("""
+            select cp from CoursePlace cp
+            join fetch cp.place p
+            where cp.course.courseId = :courseId
+            order by cp.placeOrder asc
+            """)
+    List<CoursePlace> findPlacesByCourseId(@Param("courseId") Long courseId);
 
-    List<CoursePlace> findByCourseIdOrderByPlaceOrderAsc(Long courseId);
+    List<CoursePlace> findAllByCourse_CourseIdOrderByPlaceOrderAsc(Long courseId);
+
+    List<CoursePlace> findByCourse_CourseIdOrderByPlaceOrderAsc(Long courseId);
 
     interface CourseCount {
         Long getCourseId();

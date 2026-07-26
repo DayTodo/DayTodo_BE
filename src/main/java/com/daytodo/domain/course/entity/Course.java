@@ -82,4 +82,14 @@ public class Course extends BaseEntity {
         this.participantType = participantType;
         this.courseStatus = CourseStatus.PLANNING;
     }
+
+    // 코스 종료
+    public void complete() {
+        this.courseStatus = CourseStatus.COMPLETED;
+        this.completedAt = LocalDateTime.now();
+    }
+
+    public boolean isInProgress() {
+        return this.courseStatus == CourseStatus.IN_PROGRESS;
+    }
 }
