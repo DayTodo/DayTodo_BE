@@ -5,6 +5,7 @@ import com.daytodo.global.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -18,7 +19,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  * JWT 기반 인증 적용.
  * TODO(팀 확인 필요): Course/User 컨트롤러가 아직 X-User-Id 임시 헤더를 쓰고 있어서
  * /courses/**, /users/** 를 임시로 permitAll 에 넣어뒀습니다.
- * 팀 전체가 JWT 인증으로 전환하는 시점에 이 목록에서 빼야 합니다.
+ * Diary는 JWT 인증으로 전환 완료(2026.07.28) — 팀 전체가 전환되면 이 목록에서 마저 빼야 합니다.
  */
 @Configuration
 @EnableWebSecurity
@@ -57,6 +58,12 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
+                        // Diary는 JWT 인증 전환 완료 - /courses/** permitAll보다 먼저 매칭되어야 함
+                        .requestMatchers(HttpMethod.POST, "/courses/diaries").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/courses/diaries/calendar").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/courses/diaries/{diaryId}/course").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/courses/diaries").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/courses/*/memory-photos").authenticated()
                         .requestMatchers(PERMIT_ALL_PATHS).permitAll()
                         .anyRequest().authenticated()
                 )
