@@ -327,14 +327,19 @@ public class CourseService {
         throw new ProjectException(CourseErrorCode.INVITE_CODE_GENERATION_FAILED);
     }
 
-    // ==============================================================================
     @Transactional
     public CourseResponse.Setting updateCourseSetting(Long courseId, Long userId, CourseRequest.Setting request) {
 
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ProjectException(CourseErrorCode.COURSE_NOT_FOUND));
 
-        // TODO: 인증/인가 붙일 때 - course.getOwner().getUserId().equals(userId) 검증 추가
+        CourseMember requester = courseMemberRepository
+                .findByCourseCourseIdAndUserIdAndMemberStatus(courseId, userId, MemberStatus.JOINED)
+                .orElseThrow(() -> new ProjectException(CourseErrorCode.COURSE_ACCESS_DENIED));
+
+        if (requester.getMemberRole() != MemberRole.OWNER) {
+            throw new ProjectException(CourseErrorCode.COURSE_ACCESS_DENIED);
+        }
 
         validateSameDayEditNotAllowed(course);          // PLN-001: 당일 코스 수정 불가
         validateDateChange(course, request.courseDate());
@@ -393,7 +398,6 @@ public class CourseService {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ProjectException(CourseErrorCode.COURSE_NOT_FOUND));
 
-        // 수정: existsByCourseId -> existsByCourseCourseId
         if (!courseMemberRepository.existsByCourseCourseIdAndUserIdAndMemberStatus(
                 courseId, userId, MemberStatus.JOINED)) {
             throw new ProjectException(CourseErrorCode.COURSE_ACCESS_DENIED);
@@ -414,13 +418,11 @@ public class CourseService {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ProjectException(CourseErrorCode.COURSE_NOT_FOUND));
 
-        // 수정: existsByCourseId -> existsByCourseCourseId
         if (!courseMemberRepository.existsByCourseCourseIdAndUserIdAndMemberStatus(
                 courseId, userId, MemberStatus.JOINED)) {
             throw new ProjectException(CourseErrorCode.COURSE_ACCESS_DENIED);
         }
 
-        // 수정: findByCourseId -> findByCourseCourseId
         List<CourseMember> courseMembers =
                 courseMemberRepository.findByCourseCourseIdAndMemberStatus(courseId, MemberStatus.JOINED);
 
@@ -436,7 +438,6 @@ public class CourseService {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ProjectException(CourseErrorCode.COURSE_NOT_FOUND));
 
-        // 수정: findByCourseId -> findByCourseCourseId
         CourseMember requester = courseMemberRepository
                 .findByCourseCourseIdAndUserIdAndMemberStatus(courseId, userId, MemberStatus.JOINED)
                 .orElseThrow(() -> new ProjectException(CourseErrorCode.COURSE_ACCESS_DENIED));
@@ -445,7 +446,6 @@ public class CourseService {
             throw new ProjectException(CourseErrorCode.COURSE_ACCESS_DENIED);
         }
 
-        // 수정: findByCourseId -> findByCourseCourseId
         CourseMember target = courseMemberRepository
                 .findByCourseCourseIdAndUserIdAndMemberStatus(courseId, targetUserId, MemberStatus.JOINED)
                 .orElseThrow(() -> new ProjectException(CourseErrorCode.COURSE_MEMBER_NOT_FOUND));
