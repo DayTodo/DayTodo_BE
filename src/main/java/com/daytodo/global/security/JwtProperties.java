@@ -1,7 +1,9 @@
-package com.daytodo.global.security.jwt;
+package com.daytodo.global.security;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
 
+@Component
 @ConfigurationProperties(prefix = "jwt.token")
 public record JwtProperties(String secretKey, Expiration expiration) {
 
