@@ -1,7 +1,7 @@
 package com.daytodo.global.config;
 
 import com.daytodo.global.security.JwtAuthenticationFilter;
-import com.daytodo.global.security.jwt.JwtTokenProvider;
+import com.daytodo.global.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

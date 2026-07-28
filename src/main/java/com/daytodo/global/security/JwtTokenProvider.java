@@ -1,4 +1,4 @@
-package com.daytodo.global.security.jwt;
+package com.daytodo.global.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
