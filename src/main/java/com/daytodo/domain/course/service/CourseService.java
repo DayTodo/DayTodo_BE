@@ -404,9 +404,8 @@ public class CourseService {
         }
 
         List<CoursePlace> coursePlaces =
-                coursePlaceRepository.findByCourse_CourseIdOrderByPlaceOrderAsc(courseId);
+                coursePlaceRepository.findPlacesByCourseId(courseId);   // ← 변경
 
-        // TODO: Place Repository를 전달받으면 placeId로 일괄 조회해 placeName을 매핑한다.
         return coursePlaces.stream()
                 .map(CourseResponse.CoursePlace::from)
                 .toList();
@@ -424,9 +423,8 @@ public class CourseService {
         }
 
         List<CourseMember> courseMembers =
-                courseMemberRepository.findByCourseCourseIdAndMemberStatus(courseId, MemberStatus.JOINED);
+                courseMemberRepository.findMembersByCourseId(courseId, MemberStatus.JOINED);   // ← 변경
 
-        // TODO: User Repository를 전달받으면 userId로 일괄 조회해 nickname을 매핑한다.
         return courseMembers.stream()
                 .map(CourseResponse.CourseMember::from)
                 .toList();
