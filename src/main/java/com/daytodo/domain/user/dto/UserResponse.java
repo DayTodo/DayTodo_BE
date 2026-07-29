@@ -17,4 +17,14 @@ public final class UserResponse {
             regions = List.copyOf(regions);
         }
     }
+
+    public record NotificationSettings(
+            boolean pushEnabled,
+            boolean courseD1Enabled,
+            boolean courseD0Enabled
+    ) {
+    }
+
+    public record Policies(String termsOfService, String privacyPolicy) {
+    }
 }

@@ -37,6 +37,11 @@ spring:
           timeout: 5000
           writetimeout: 5000
 
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
+
 jwt:
   token:
     secretKey: ${JWT_SECRET_KEY}
@@ -48,3 +53,8 @@ naver:
   base-url: https://openapi.naver.com
   client-id: ${NAVER_CLIENT_ID}
   client-secret: ${NAVER_CLIENT_SECRET}
+
+aws:
+  s3:
+    bucket: ${AWS_S3_BUCKET:}
+    region: ${AWS_REGION:}

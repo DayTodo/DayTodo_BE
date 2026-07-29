@@ -20,15 +20,12 @@ import java.util.List;
 @RequestMapping("/courses")
 @RequiredArgsConstructor
 public class CourseController {
-    private static final String TEMPORARY_USER_ID_HEADER = "X-User-Id";
-
     private final CourseService courseService;
 
     @Operation(summary = "홈 및 생성한 코스 목록 통합 조회")
     @GetMapping
     public CourseResponse.Courses getCourses(
-            // TODO Auth 구현 후 인증 Principal에서 userId를 주입하도록 교체한다.
-            @RequestHeader(TEMPORARY_USER_ID_HEADER) Long userId,
+            @AuthenticationPrincipal Long userId,
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false)
@@ -40,7 +37,7 @@ public class CourseController {
     @Operation(summary = "월별 코스 캘린더 조회")
     @GetMapping("/calendar")
     public CourseResponse.Calendar getCalendar(
-            @RequestHeader(TEMPORARY_USER_ID_HEADER) Long userId,
+            @AuthenticationPrincipal Long userId,
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month
     ) {
@@ -50,7 +47,7 @@ public class CourseController {
     @Operation(summary = "코스 생성")
     @PostMapping
     public CourseResponse.Created createCourse(
-            @RequestHeader(TEMPORARY_USER_ID_HEADER) Long userId,
+            @AuthenticationPrincipal Long userId,
             @Valid @RequestBody CourseRequest.Create request
     ) {
         return courseService.createCourse(userId, request);
@@ -59,7 +56,7 @@ public class CourseController {
     @Operation(summary = "초대코드로 코스 참가")
     @PostMapping("/join")
     public CourseResponse.Joined joinCourse(
-            @RequestHeader(TEMPORARY_USER_ID_HEADER) Long userId,
+            @AuthenticationPrincipal Long userId,
             @Valid @RequestBody CourseRequest.Join request
     ) {
         return courseService.joinCourse(userId, request);

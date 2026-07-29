@@ -22,6 +22,7 @@ public class WithdrawnUserCleanupRepository {
         delete("delete from SocialAccount entity where entity.user.id = :userId", userId);
         delete("delete from Notification entity where entity.user.id = :userId", userId);
         delete("delete from UserNotificationSetting entity where entity.user.id = :userId", userId);
+        delete("delete from Feedback entity where entity.user.id = :userId", userId);
         delete("delete from UserInterestRegion entity where entity.user.id = :userId", userId);
         delete("delete from Diary entity where entity.user.id = :userId", userId);
         delete("delete from CourseMember entity where entity.user.id = :userId", userId);

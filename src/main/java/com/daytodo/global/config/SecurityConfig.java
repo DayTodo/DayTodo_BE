@@ -1,8 +1,13 @@
 package com.daytodo.global.config;
 
+import com.daytodo.global.apiPayload.ErrorResponse;
+import com.daytodo.global.apiPayload.code.GeneralErrorCode;
 import com.daytodo.global.security.JwtAuthenticationFilter;
 import com.daytodo.global.security.JwtTokenProvider;
+import tools.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -13,6 +18,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import java.io.IOException;
 
 /**
  * JWT 기반 인증 적용.
@@ -46,6 +53,7 @@ public class SecurityConfig {
     };
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final ObjectMapper objectMapper;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -57,8 +65,33 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.GET, "/users/policies").permitAll()
+                        .requestMatchers(HttpMethod.GET,
+                                "/users/profile",
+                                "/users/interest-region",
+                                "/users/notifications",
+                                "/courses",
+                                "/courses/calendar"
+                        ).authenticated()
+                        .requestMatchers(HttpMethod.PATCH,
+                                "/users/profile",
+                                "/users/interest-regions",
+                                "/users/notifications"
+                        ).authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/users/me").authenticated()
+                        .requestMatchers(HttpMethod.POST,
+                                "/users/feedback",
+                                "/courses",
+                                "/courses/join"
+                        ).authenticated()
                         .requestMatchers(PERMIT_ALL_PATHS).permitAll()
                         .anyRequest().authenticated()
+                )
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint((request, response, exception) ->
+                                writeSecurityError(response, GeneralErrorCode.UNAUTHORIZED))
+                        .accessDeniedHandler((request, response, exception) ->
+                                writeSecurityError(response, GeneralErrorCode.FORBIDDEN))
                 )
                 .addFilterBefore(
                         new JwtAuthenticationFilter(jwtTokenProvider),
@@ -71,5 +104,15 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    private void writeSecurityError(
+            jakarta.servlet.http.HttpServletResponse response,
+            GeneralErrorCode errorCode
+    ) throws IOException {
+        response.setStatus(errorCode.getStatus().value());
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding(java.nio.charset.StandardCharsets.UTF_8.name());
+        objectMapper.writeValue(response.getWriter(), ErrorResponse.of(errorCode));
     }
 }
