@@ -47,9 +47,20 @@ public class SecurityConfig {
             "/auth/password/reset",
             "/swagger-ui/**",
             "/v3/api-docs/**",
-            "/courses/**",
-            "/users/**",
             "/health"
+    };
+
+    // JWT 전환 대상 외의 기존 Course API 접근 정책은 변경하지 않는다.
+    private static final String[] LEGACY_PERMIT_ALL_COURSE_PATHS = {
+            "/courses/diaries/**",
+            "/courses/today",
+            "/courses/*/complete",
+            "/courses/*/photos",
+            "/courses/*/memory-photos",
+            "/courses/*/setting",
+            "/courses/*/places",
+            "/courses/*/members",
+            "/courses/*/members/*"
     };
 
     private final JwtTokenProvider jwtTokenProvider;
@@ -84,6 +95,7 @@ public class SecurityConfig {
                                 "/courses",
                                 "/courses/join"
                         ).authenticated()
+                        .requestMatchers(LEGACY_PERMIT_ALL_COURSE_PATHS).permitAll()
                         .requestMatchers(PERMIT_ALL_PATHS).permitAll()
                         .anyRequest().authenticated()
                 )

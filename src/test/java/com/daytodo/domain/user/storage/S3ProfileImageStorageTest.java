@@ -5,6 +5,11 @@ import com.daytodo.global.apiPayload.exception.ProjectException;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockMultipartFile;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class S3ProfileImageStorageTest {
@@ -39,18 +44,37 @@ class S3ProfileImageStorageTest {
 
     @Test
     void rejectsMismatchedContentTypeAndPngSignature() {
-        byte[] png = {(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
         assertError(
-                new MockMultipartFile("profileImage", "image.jpg", "image/jpeg", png),
+                new MockMultipartFile("profileImage", "image.jpg", "image/jpeg", image("png")),
                 UserErrorCode.INVALID_PROFILE_IMAGE_FORMAT
         );
     }
 
     @Test
-    void validImageReportsMissingS3ConfigurationOnlyAtUploadTime() {
-        byte[] jpeg = {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, 0x00};
+    void rejectsJpegHeaderWhoseBodyCannotBeDecoded() {
         assertError(
-                new MockMultipartFile("profileImage", "image.jpg", "image/jpeg", jpeg),
+                new MockMultipartFile(
+                        "profileImage",
+                        "broken.jpg",
+                        "image/jpeg",
+                        new byte[]{(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, 0x00}
+                ),
+                UserErrorCode.INVALID_PROFILE_IMAGE_FORMAT
+        );
+    }
+
+    @Test
+    void validJpegReportsMissingS3ConfigurationOnlyAtUploadTime() {
+        assertError(
+                new MockMultipartFile("profileImage", "image.jpg", "image/jpeg", image("jpg")),
+                UserErrorCode.PROFILE_IMAGE_STORAGE_NOT_CONFIGURED
+        );
+    }
+
+    @Test
+    void validPngReportsMissingS3ConfigurationOnlyAtUploadTime() {
+        assertError(
+                new MockMultipartFile("profileImage", "image.png", "image/png", image("png")),
                 UserErrorCode.PROFILE_IMAGE_STORAGE_NOT_CONFIGURED
         );
     }
@@ -60,5 +84,17 @@ class S3ProfileImageStorageTest {
                 .isInstanceOf(ProjectException.class)
                 .extracting("errorCode")
                 .isEqualTo(errorCode);
+    }
+
+    private byte[] image(String format) {
+        BufferedImage image = new BufferedImage(2, 2, BufferedImage.TYPE_INT_RGB);
+        try (ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+            if (!ImageIO.write(image, format, output)) {
+                throw new IllegalStateException("No ImageIO writer for " + format);
+            }
+            return output.toByteArray();
+        } catch (IOException exception) {
+            throw new IllegalStateException(exception);
+        }
     }
 }

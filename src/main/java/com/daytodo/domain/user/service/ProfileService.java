@@ -9,6 +9,7 @@ import com.daytodo.domain.user.storage.ProfileImageStorage;
 import com.daytodo.global.apiPayload.exception.ProjectException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -47,6 +48,14 @@ public class ProfileService {
         }
 
         user.updateProfile(normalizedNickname, newImageUrl);
+        try {
+            userRepository.flush();
+        } catch (DataIntegrityViolationException exception) {
+            if (isNicknameConstraintViolation(exception)) {
+                throw new ProjectException(UserErrorCode.NICKNAME_DUPLICATED);
+            }
+            throw exception;
+        }
         return new UserResponse.Profile(user.getId(), user.getNickname(), user.getProfileImageUrl());
     }
 
@@ -85,5 +94,18 @@ public class ProfileService {
         } catch (RuntimeException exception) {
             log.warn("Failed to delete {} profile image from S3", target, exception);
         }
+    }
+
+    private boolean isNicknameConstraintViolation(Throwable exception) {
+        Throwable cause = exception;
+        while (cause != null) {
+            String message = cause.getMessage();
+            if (message != null && message.toLowerCase(java.util.Locale.ROOT)
+                    .contains("uk_users_nickname")) {
+                return true;
+            }
+            cause = cause.getCause();
+        }
+        return false;
     }
 }

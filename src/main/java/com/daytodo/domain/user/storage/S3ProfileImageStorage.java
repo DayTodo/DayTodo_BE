@@ -18,6 +18,9 @@ import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.S3Uri;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -97,8 +100,16 @@ public class S3ProfileImageStorage implements ProfileImageStorage {
                 ? ""
                 : image.getContentType().toLowerCase(Locale.ROOT);
         try (InputStream inputStream = image.getInputStream()) {
-            byte[] signature = inputStream.readNBytes(PNG_SIGNATURE.length);
-            if (isJpeg(signature) && ("image/jpeg".equals(contentType) || "image/jpg".equals(contentType))) {
+            byte[] imageBytes = inputStream.readAllBytes();
+            byte[] signature = java.util.Arrays.copyOf(
+                    imageBytes,
+                    Math.min(imageBytes.length, PNG_SIGNATURE.length)
+            );
+            BufferedImage decodedImage = ImageIO.read(new ByteArrayInputStream(imageBytes));
+            if (decodedImage == null || decodedImage.getWidth() <= 0 || decodedImage.getHeight() <= 0) {
+                throw new ProjectException(UserErrorCode.INVALID_PROFILE_IMAGE_FORMAT);
+            }
+            if (isJpeg(signature) && "image/jpeg".equals(contentType)) {
                 return ImageType.JPEG;
             }
             if (isPng(signature) && "image/png".equals(contentType)) {
