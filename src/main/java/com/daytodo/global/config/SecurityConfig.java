@@ -23,9 +23,8 @@ import java.io.IOException;
 
 /**
  * JWT 기반 인증 적용.
- * TODO(팀 확인 필요): Course/User 컨트롤러가 아직 X-User-Id 임시 헤더를 쓰고 있어서
- * /courses/**, /users/** 를 임시로 permitAll 에 넣어뒀습니다.
- * 팀 전체가 JWT 인증으로 전환하는 시점에 이 목록에서 빼야 합니다.
+ * User API와 일부 Course API, Diary API는 JWT 인증으로 전환했습니다.
+ * 아직 전환하지 않은 Course API만 LEGACY_PERMIT_ALL_COURSE_PATHS에서 임시로 허용합니다.
  */
 @Configuration
 @EnableWebSecurity
@@ -52,11 +51,9 @@ public class SecurityConfig {
 
     // JWT 전환 대상 외의 기존 Course API 접근 정책은 변경하지 않는다.
     private static final String[] LEGACY_PERMIT_ALL_COURSE_PATHS = {
-            "/courses/diaries/**",
             "/courses/today",
             "/courses/*/complete",
             "/courses/*/photos",
-            "/courses/*/memory-photos",
             "/courses/*/setting",
             "/courses/*/places",
             "/courses/*/members",
@@ -76,6 +73,12 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
+                        // Diary는 JWT 인증 전환 완료
+                        .requestMatchers(HttpMethod.POST, "/courses/diaries").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/courses/diaries/calendar").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/courses/diaries/{diaryId}/course").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/courses/diaries").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/courses/*/memory-photos").authenticated()
                         .requestMatchers(HttpMethod.GET, "/users/policies").permitAll()
                         .requestMatchers(HttpMethod.GET,
                                 "/users/profile",
