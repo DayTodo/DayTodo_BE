@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -68,7 +69,7 @@ public class CourseController {
     @PatchMapping("/{courseId}/setting")
     public CourseResponse.Setting updateCourseSetting(
             @PathVariable Long courseId,
-            @RequestHeader(TEMPORARY_USER_ID_HEADER) Long userId,
+            @AuthenticationPrincipal Long userId,
             @Valid @RequestBody CourseRequest.Setting request
     ) {
         return courseService.updateCourseSetting(courseId, userId, request);
@@ -78,7 +79,7 @@ public class CourseController {
     @GetMapping("/{courseId}/places")
     public List<CourseResponse.CoursePlace> getCoursePlaces(
             @PathVariable Long courseId,
-            @RequestHeader(TEMPORARY_USER_ID_HEADER) Long userId
+            @AuthenticationPrincipal Long userId
     ) {
         return courseService.getCoursePlaces(courseId, userId);
     }
@@ -87,7 +88,7 @@ public class CourseController {
     @GetMapping("/{courseId}/members")
     public List<CourseResponse.CourseMember> getCourseMembers(
             @PathVariable Long courseId,
-            @RequestHeader(TEMPORARY_USER_ID_HEADER) Long userId
+            @AuthenticationPrincipal Long userId
     ) {
         return courseService.getCourseMembers(courseId, userId);
     }
@@ -99,7 +100,7 @@ public class CourseController {
             // URL 호환성을 위해 memberId라는 경로명은 유지한다.
             // 이 값은 CourseMember PK가 아니라 강퇴 대상 사용자의 userId다.
             @PathVariable Long memberId,
-            @RequestHeader(TEMPORARY_USER_ID_HEADER) Long userId
+            @AuthenticationPrincipal Long userId
     ) {
         courseService.kickCourseMember(courseId, memberId, userId);
     }

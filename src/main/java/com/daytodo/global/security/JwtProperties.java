@@ -1,4 +1,4 @@
-package com.daytodo.global.security.jwt;
+package com.daytodo.global.security;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
