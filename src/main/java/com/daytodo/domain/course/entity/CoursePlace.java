@@ -5,15 +5,14 @@ import com.daytodo.domain.course.enums.CoursePlaceStatus;
 import com.daytodo.domain.place.entity.Place;
 import com.daytodo.domain.user.entity.User;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
+@AllArgsConstructor
 @Getter
-@Setter
-@NoArgsConstructor
+@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "course_place")
 public class CoursePlace extends BaseCreatedEntity {
@@ -44,4 +43,6 @@ public class CoursePlace extends BaseCreatedEntity {
 
     @Column(name = "visited_at")
     private LocalDateTime visitedAt;
+
+
 }

@@ -1,6 +1,8 @@
 package com.daytodo.domain.course.dto;
 
 import com.daytodo.domain.course.enums.ParticipantType;
+import com.daytodo.domain.course.enums.RecommendationSource;
+import com.daytodo.domain.place.enums.PlaceRecommendationSource;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -65,5 +67,26 @@ public final class CourseRequest {
         public boolean isValidPriceRange() {
             return minPrice == null || maxPrice == null || maxPrice >= minPrice;
         }
+    }
+
+    public record AddCoursePlace(
+            @NotNull(message = "recommendationId는 필수입니다.")
+            Long recommendationId
+    ) {
+    }
+
+    public record RecommendPlace(
+            @NotNull(message = "추천 출처는 필수입니다.")
+            PlaceRecommendationSource source, // [변경 완료] 기존 PlaceRecommendationSource 사용
+            @NotNull(message = "placeId는 필수입니다.")
+            Long placeId
+    ) {
+    }
+
+    public record RecommendationComment(
+            @NotBlank(message = "댓글 내용은 필수입니다.")
+            @Size(max = 500, message = "댓글은 500자 이하여야 합니다.")
+            String content
+    ) {
     }
 }

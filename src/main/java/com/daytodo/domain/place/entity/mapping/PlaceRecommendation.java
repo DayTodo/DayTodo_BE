@@ -6,6 +6,8 @@ import com.daytodo.domain.place.entity.Place;
 import com.daytodo.domain.place.enums.PlaceRecommendationSource;
 import com.daytodo.domain.user.entity.User;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -13,6 +15,8 @@ import lombok.NoArgsConstructor;
 @Table(name = "place_recommendation")
 @Getter
 @NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 public class PlaceRecommendation extends BaseCreatedEntity {
 
     @Id

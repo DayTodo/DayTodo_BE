@@ -50,6 +50,13 @@ bin/
 .DS_Store
 Thumbs.db
 
+# Docker
+Dockerfile
+.dockerignore
+docker-compose.yml
+docker-compose.override.yml
+*.dockerfile
+
 # Env
 .env
 

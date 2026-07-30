@@ -102,4 +102,52 @@ public class CourseController {
         courseService.kickCourseMember(courseId, memberId, userId);
     }
 
+    @Operation(summary = "추천 장소 좋아요")
+    @PostMapping("/recommendations/{recommendationId}/likes")
+    public CourseResponse.RecommendationLike likeRecommendation(
+            @PathVariable Long recommendationId,
+            @RequestHeader(TEMPORARY_USER_ID_HEADER) Long userId // 수정됨
+    ) {
+        return courseService.likeRecommendation(recommendationId, userId);
+    }
+
+    @Operation(summary = "추천 장소 코스에 넣기")
+    @PostMapping("/{courseId}/places")
+    public CourseResponse.CoursePlaceAdded addRecommendationToCourse(
+            @PathVariable Long courseId,
+            @RequestHeader(TEMPORARY_USER_ID_HEADER) Long userId, // 수정됨
+            @Valid @RequestBody CourseRequest.AddCoursePlace request
+    ) {
+        return courseService.addRecommendationToCourse(courseId, userId, request);
+    }
+
+    @Operation(summary = "장소 추천")
+    @PostMapping("/{courseId}/recommendations")
+    public CourseResponse.RecommendationCreated recommendPlace(
+            @PathVariable Long courseId,
+            @RequestHeader(TEMPORARY_USER_ID_HEADER) Long userId, // 수정됨
+            @Valid @RequestBody CourseRequest.RecommendPlace request
+    ) {
+        return courseService.recommendPlace(courseId, userId, request);
+    }
+
+    @Operation(summary = "추천 장소 댓글 달기")
+    @PostMapping("/recommendations/{recommendationId}/comments")
+    public CourseResponse.RecommendationCommentCreated addRecommendationComment(
+            @PathVariable Long recommendationId,
+            @RequestHeader(TEMPORARY_USER_ID_HEADER) Long userId, // 수정됨
+            @Valid @RequestBody CourseRequest.RecommendationComment request
+    ) {
+        return courseService.addRecommendationComment(recommendationId, userId, request);
+    }
+
+    @Operation(summary = "추천 장소 리스트 조회")
+    @GetMapping("/{courseId}/recommendations")
+    public List<CourseResponse.Recommendation> getRecommendations(
+            @PathVariable Long courseId,
+            @RequestHeader(TEMPORARY_USER_ID_HEADER) Long userId, // 수정됨
+            @RequestParam(required = false) String recommender // RecommendationSource Enum을 사용한다면 해당 타입으로 변경
+    ) {
+        return courseService.getRecommendations(courseId, userId, recommender);
+    }
 }
