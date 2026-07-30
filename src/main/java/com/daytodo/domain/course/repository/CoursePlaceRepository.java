@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 public interface CoursePlaceRepository extends JpaRepository<CoursePlace, Long> {
 
@@ -38,4 +39,13 @@ public interface CoursePlaceRepository extends JpaRepository<CoursePlace, Long> 
             group by cp.course.courseId
             """)
     List<CourseCount> countPlacesByCourseIds(@Param("courseIds") Collection<Long> courseIds);
+
+    @Query("""
+        select max(cp.placeOrder) 
+        from CoursePlace cp 
+        where cp.course.courseId = :courseId
+        """)
+    Optional<Integer> findMaxPlaceOrderByCourse_CourseId(@Param("courseId") Long courseId);
+
+    boolean existsByCourse_CourseIdAndPlace_PlaceId(Long courseId, Long placeId);
 }

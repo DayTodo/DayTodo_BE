@@ -519,7 +519,7 @@ public class CourseService {
         }
 
         // 마지막 장소 순서 구하기 (없으면 0)
-        Integer maxOrder = coursePlaceRepository.findMaxPlaceOrderByCourseId(courseId).orElse(0);
+        Integer maxOrder = coursePlaceRepository.findMaxPlaceOrderByCourse_CourseId(courseId).orElse(0);;
 
         // 추가자(User) 조회
         User addedByUser = userService.getActiveUser(userId);
