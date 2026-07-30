@@ -4,6 +4,8 @@ import com.daytodo.domain.common.BaseEntity;
 import com.daytodo.domain.place.entity.mapping.PlaceRecommendation;
 import com.daytodo.domain.user.entity.User;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -11,6 +13,8 @@ import lombok.NoArgsConstructor;
 @Table(name = "recommendation_comment")
 @Getter
 @NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 public class RecommendationComment extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

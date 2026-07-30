@@ -5,6 +5,7 @@ import com.daytodo.domain.course.enums.ParticipantType;
 import com.daytodo.domain.course.entity.Course;
 import com.daytodo.domain.course.enums.MemberRole;
 import com.daytodo.domain.course.enums.MemberStatus;
+import com.daytodo.domain.place.enums.PlaceRecommendationSource;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -133,4 +134,38 @@ public final class CourseResponse {
             );
         }
     }
+
+    // ==============================================================================
+
+    public record RecommendationLike(
+            Long recommendationLikeId,
+            int likeCount,
+            boolean isLiked
+    ) {
+    }
+
+    public record CoursePlaceAdded(
+            Long coursePlaceId
+    ) {
+    }
+
+    public record RecommendationCreated(
+            Long recommendationId
+    ) {
+    }
+
+    public record RecommendationCommentCreated(
+            Long commentId
+    ) {
+    }
+
+    public record Recommendation(
+            Long recommendationId,
+            PlaceRecommendationSource source, // String -> PlaceRecommendationSource로 변경
+            String placeName,
+            int likeCount,
+            int commentCount,
+            boolean isLiked,
+            boolean isSelected
+    ) {}
 }

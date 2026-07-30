@@ -3,6 +3,7 @@ package com.daytodo.domain.place.entity.mapping;
 import com.daytodo.domain.common.BaseCreatedEntity;
 import com.daytodo.domain.user.entity.User;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -29,4 +30,10 @@ public class RecommendationLike extends BaseCreatedEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @Builder
+    public RecommendationLike(PlaceRecommendation recommendation, User user) {
+        this.recommendation = recommendation;
+        this.user = user;
+    }
 }

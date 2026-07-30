@@ -28,7 +28,14 @@ public enum CourseErrorCode implements BaseErrorCode {
     COURSE_DATE_CHANGE_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "COURSE_DATE_CHANGE_NOT_ALLOWED", "진행 중인 코스의 날짜는 변경할 수 없습니다."),
     COURSE_ACCESS_DENIED(HttpStatus.FORBIDDEN, "COURSE_ACCESS_DENIED", "코스에 대한 접근 권한이 없습니다."),
     COURSE_MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "COURSE_MEMBER_NOT_FOUND", "해당 코스 멤버를 찾을 수 없습니다."),
-    OWNER_CANNOT_BE_REMOVED(HttpStatus.BAD_REQUEST, "OWNER_CANNOT_BE_REMOVED", "방장은 강퇴할 수 없습니다.");
+    OWNER_CANNOT_BE_REMOVED(HttpStatus.BAD_REQUEST, "OWNER_CANNOT_BE_REMOVED", "방장은 강퇴할 수 없습니다."),
+
+    // ==============================================================================
+    RECOMMENDATION_NOT_FOUND(HttpStatus.NOT_FOUND, "RECOMMENDATION_NOT_FOUND", "추천 정보를 찾을 수 없습니다."),
+    RECOMMENDATION_ALREADY_LIKED(HttpStatus.CONFLICT, "RECOMMENDATION_ALREADY_LIKED", "이미 좋아요를 누른 추천입니다."),
+    DUPLICATE_PLACE(HttpStatus.CONFLICT, "DUPLICATE_PLACE", "이미 코스에 추가된 장소입니다."),
+    PLACE_NOT_FOUND(HttpStatus.NOT_FOUND, "PLACE_NOT_FOUND", "장소를 찾을 수 없습니다."),
+    DUPLICATE_RECOMMENDATION(HttpStatus.CONFLICT, "DUPLICATE_RECOMMENDATION", "이미 추천된 장소입니다.");
 
     private final HttpStatus status;
     private final String code;
