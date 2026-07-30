@@ -481,6 +481,13 @@ public class CourseService {
         // 3. User 엔티티 조회 (기존 상단에 주입된 userService 활용)
         User user = userService.getActiveUser(userId);
 
+
+        //코스 권한 검증
+        Long courseId = recommendation.getCourse().getCourseId();
+        if (!courseMemberRepository.existsByCourseCourseIdAndUserIdAndMemberStatus(courseId, userId, MemberStatus.JOINED)) {
+            throw new ProjectException(CourseErrorCode.COURSE_ACCESS_DENIED);
+        }
+
         // 4. 좋아요 저장 (위에서 추가한 Builder 패턴 사용, ID가 아닌 객체를 주입)
         RecommendationLike like = RecommendationLike.builder()
                 .recommendation(recommendation)
@@ -510,6 +517,11 @@ public class CourseService {
 
         PlaceRecommendation recommendation = placeRecommendationRepository.findById(request.recommendationId())
                 .orElseThrow(() -> new ProjectException(CourseErrorCode.RECOMMENDATION_NOT_FOUND));
+
+        //추천 장소가 해당 코스내에 이미 포함되었는지 확인
+        if (!recommendation.getCourse().getCourseId().equals(courseId)) {
+            throw new ProjectException(CourseErrorCode.RECOMMENDATION_NOT_FOUND);
+        }
 
         // 이미 코스에 추가된 장소인지 중복 확인
         if (coursePlaceRepository.existsByCourse_CourseIdAndPlace_PlaceId(courseId, recommendation.getPlace().getPlaceId())) {
@@ -558,8 +570,7 @@ public class CourseService {
         // 추천자(User) 조회
         User recommender = userService.getActiveUser(userId);
 
-        // [정석 매핑] DTO의 소스 Enum 타입을 엔티티의 PlaceRecommendationSource Enum 타입으로 안전하게 변환
-        PlaceRecommendationSource sourceEnum = PlaceRecommendationSource.valueOf(request.source().name());
+        PlaceRecommendationSource sourceEnum = PlaceRecommendationSource.MEMBER;
 
         // Builder를 이용한 PlaceRecommendation 생성 (ERD 외래키/연관관계 100% 일치)
         PlaceRecommendation recommendation = PlaceRecommendation.builder()
@@ -631,8 +642,7 @@ public class CourseService {
             int commentCount = recommendationCommentRepository.countByRecommendation_RecommendationIdAndIsDeletedFalse(rec.getRecommendationId());
             boolean isLiked = recommendationLikeRepository.existsByRecommendation_RecommendationIdAndUser_Id(rec.getRecommendationId(), userId);
 
-            // TODO: placeRepository를 통해 placeName 조회 로직 필요 (또는 fetch join)
-            String placeName = "임시 장소명";
+            String placeName = rec.getPlace().getPlaceName();
 
             return new CourseResponse.Recommendation(
                     rec.getRecommendationId(),
