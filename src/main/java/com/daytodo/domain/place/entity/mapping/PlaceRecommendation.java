@@ -14,9 +14,9 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "place_recommendation")
 @Getter
-@NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
-@AllArgsConstructor
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
 public class PlaceRecommendation extends BaseCreatedEntity {
 
     @Id
