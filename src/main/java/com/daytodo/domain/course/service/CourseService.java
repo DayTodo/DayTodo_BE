@@ -466,7 +466,6 @@ public class CourseService {
         target.setMemberStatus(MemberStatus.LEFT);
     }
 
-    //==========================================================================================
     @Transactional
     public CourseResponse.RecommendationLike likeRecommendation(Long recommendationId, Long userId) {
         // 1. 추천 장소 존재 여부 확인 (객체 가져오기)
@@ -480,7 +479,6 @@ public class CourseService {
 
         // 3. User 엔티티 조회 (기존 상단에 주입된 userService 활용)
         User user = userService.getActiveUser(userId);
-
 
         //코스 권한 검증
         Long courseId = recommendation.getCourse().getCourseId();
@@ -529,7 +527,7 @@ public class CourseService {
         }
 
         // 마지막 장소 순서 구하기 (없으면 0)
-        Integer maxOrder = coursePlaceRepository.findMaxPlaceOrderByCourse_CourseId(courseId).orElse(0);;
+        Integer maxOrder = coursePlaceRepository.findMaxPlaceOrderByCourse_CourseId(courseId).orElse(0);
 
         // 추가자(User) 조회
         User addedByUser = userService.getActiveUser(userId);
@@ -601,11 +599,10 @@ public class CourseService {
         // 3. 작성자(User) 조회
         User user = userService.getActiveUser(userId);
 
-        // 4. RecommendationComment 엔티티 생성 (엔티티 구조 및 빌더/생성자에 맞춤)
-        // ※ 만약 엔티티에 빌더가 있다면 아래와 같이 작성하고, 명시적 생성자라면 new로 맞춰주세요.
+        // 4. RecommendationComment 엔티티 생성
         RecommendationComment comment = RecommendationComment.builder()
-                .recommendation(recommendation) // ID가 아닌 PlaceRecommendation 객체 주입
-                .user(user)                     // ID가 아닌 User 객체 주입
+                .recommendation(recommendation)
+                .user(user)
                 .content(request.content())
                 .isDeleted(false)
                 .build();
@@ -651,8 +648,10 @@ public class CourseService {
                     likeCount,
                     commentCount,
                     isLiked,
-                    rec.isSelected() // [수정 완료] getIsSelected() 대신 isSelected() 사용
+                    rec.isSelected()
             );
         }).toList();
     }
+
+
 }
