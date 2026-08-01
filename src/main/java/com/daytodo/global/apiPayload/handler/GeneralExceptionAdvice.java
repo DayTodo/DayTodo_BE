@@ -4,10 +4,12 @@ import com.daytodo.global.apiPayload.ErrorResponse;
 import com.daytodo.global.apiPayload.code.BaseErrorCode;
 import com.daytodo.global.apiPayload.code.GeneralErrorCode;
 import com.daytodo.global.apiPayload.exception.ProjectException;
+import com.daytodo.domain.user.exception.code.UserErrorCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.stream.Collectors;
@@ -46,6 +48,15 @@ public class GeneralExceptionAdvice {
             NoResourceFoundException e
     ) {
         BaseErrorCode code = GeneralErrorCode.NOT_FOUND;
+        return ResponseEntity.status(code.getStatus())
+                .body(ErrorResponse.of(code));
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ErrorResponse> handleMaxUploadSizeExceededException(
+            MaxUploadSizeExceededException e
+    ) {
+        BaseErrorCode code = UserErrorCode.PROFILE_IMAGE_TOO_LARGE;
         return ResponseEntity.status(code.getStatus())
                 .body(ErrorResponse.of(code));
     }

@@ -1,11 +1,15 @@
 package com.daytodo.global.config;
 
+import com.daytodo.global.apiPayload.ErrorResponse;
+import com.daytodo.global.apiPayload.code.GeneralErrorCode;
 import com.daytodo.global.security.JwtAuthenticationFilter;
 import com.daytodo.global.security.JwtTokenProvider;
+import tools.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -15,11 +19,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import java.io.IOException;
+
 /**
  * JWT 기반 인증 적용.
- * TODO(팀 확인 필요): Course/User 컨트롤러가 아직 X-User-Id 임시 헤더를 쓰고 있어서
- * /courses/**, /users/** 를 임시로 permitAll 에 넣어뒀습니다.
- * Diary는 JWT 인증으로 전환 완료(2026.07.28) — 팀 전체가 전환되면 이 목록에서 마저 빼야 합니다.
+ * User API와 일부 Course API, Diary API는 JWT 인증으로 전환했습니다.
+ * 아직 전환하지 않은 Course API만 LEGACY_PERMIT_ALL_COURSE_PATHS에서 임시로 허용합니다.
  */
 @Configuration
 @EnableWebSecurity
@@ -41,12 +46,22 @@ public class SecurityConfig {
             "/auth/password/reset",
             "/swagger-ui/**",
             "/v3/api-docs/**",
-            "/courses/**",
-            "/users/**",
             "/health"
     };
 
+    // JWT 전환 대상 외의 기존 Course API 접근 정책은 변경하지 않는다.
+    private static final String[] LEGACY_PERMIT_ALL_COURSE_PATHS = {
+            "/courses/today",
+            "/courses/*/complete",
+            "/courses/*/photos",
+            "/courses/*/setting",
+            "/courses/*/places",
+            "/courses/*/members",
+            "/courses/*/members/*"
+    };
+
     private final JwtTokenProvider jwtTokenProvider;
+    private final ObjectMapper objectMapper;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -58,14 +73,40 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        // Diary는 JWT 인증 전환 완료 - /courses/** permitAll보다 먼저 매칭되어야 함
+                        // Diary는 JWT 인증 전환 완료
                         .requestMatchers(HttpMethod.POST, "/courses/diaries").authenticated()
                         .requestMatchers(HttpMethod.GET, "/courses/diaries/calendar").authenticated()
                         .requestMatchers(HttpMethod.GET, "/courses/diaries/{diaryId}/course").authenticated()
                         .requestMatchers(HttpMethod.GET, "/courses/diaries").authenticated()
                         .requestMatchers(HttpMethod.GET, "/courses/*/memory-photos").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/users/policies").permitAll()
+                        .requestMatchers(HttpMethod.GET,
+                                "/users/profile",
+                                "/users/interest-region",
+                                "/users/notifications",
+                                "/courses",
+                                "/courses/calendar"
+                        ).authenticated()
+                        .requestMatchers(HttpMethod.PATCH,
+                                "/users/profile",
+                                "/users/interest-regions",
+                                "/users/notifications"
+                        ).authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/users/me").authenticated()
+                        .requestMatchers(HttpMethod.POST,
+                                "/users/feedback",
+                                "/courses",
+                                "/courses/join"
+                        ).authenticated()
+                        .requestMatchers(LEGACY_PERMIT_ALL_COURSE_PATHS).permitAll()
                         .requestMatchers(PERMIT_ALL_PATHS).permitAll()
                         .anyRequest().authenticated()
+                )
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint((request, response, exception) ->
+                                writeSecurityError(response, GeneralErrorCode.UNAUTHORIZED))
+                        .accessDeniedHandler((request, response, exception) ->
+                                writeSecurityError(response, GeneralErrorCode.FORBIDDEN))
                 )
                 .addFilterBefore(
                         new JwtAuthenticationFilter(jwtTokenProvider),
@@ -78,5 +119,15 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    private void writeSecurityError(
+            jakarta.servlet.http.HttpServletResponse response,
+            GeneralErrorCode errorCode
+    ) throws IOException {
+        response.setStatus(errorCode.getStatus().value());
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding(java.nio.charset.StandardCharsets.UTF_8.name());
+        objectMapper.writeValue(response.getWriter(), ErrorResponse.of(errorCode));
     }
 }
