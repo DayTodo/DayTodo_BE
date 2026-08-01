@@ -106,7 +106,7 @@ public class CourseController {
     @PostMapping("/recommendations/{recommendationId}/likes")
     public CourseResponse.RecommendationLike likeRecommendation(
             @PathVariable Long recommendationId,
-            @RequestHeader(TEMPORARY_USER_ID_HEADER) Long userId // 수정됨
+            @AuthenticationPrincipal Long userId
     ) {
         return courseService.likeRecommendation(recommendationId, userId);
     }
@@ -115,7 +115,7 @@ public class CourseController {
     @PostMapping("/{courseId}/places")
     public CourseResponse.CoursePlaceAdded addRecommendationToCourse(
             @PathVariable Long courseId,
-            @RequestHeader(TEMPORARY_USER_ID_HEADER) Long userId, // 수정됨
+            @AuthenticationPrincipal Long userId,
             @Valid @RequestBody CourseRequest.AddCoursePlace request
     ) {
         return courseService.addRecommendationToCourse(courseId, userId, request);
@@ -125,7 +125,7 @@ public class CourseController {
     @PostMapping("/{courseId}/recommendations")
     public CourseResponse.RecommendationCreated recommendPlace(
             @PathVariable Long courseId,
-            @RequestHeader(TEMPORARY_USER_ID_HEADER) Long userId, // 수정됨
+            @AuthenticationPrincipal Long userId,
             @Valid @RequestBody CourseRequest.RecommendPlace request
     ) {
         return courseService.recommendPlace(courseId, userId, request);
@@ -135,7 +135,7 @@ public class CourseController {
     @PostMapping("/recommendations/{recommendationId}/comments")
     public CourseResponse.RecommendationCommentCreated addRecommendationComment(
             @PathVariable Long recommendationId,
-            @RequestHeader(TEMPORARY_USER_ID_HEADER) Long userId, // 수정됨
+            @AuthenticationPrincipal Long userId,
             @Valid @RequestBody CourseRequest.RecommendationComment request
     ) {
         return courseService.addRecommendationComment(recommendationId, userId, request);
@@ -145,8 +145,8 @@ public class CourseController {
     @GetMapping("/{courseId}/recommendations")
     public List<CourseResponse.Recommendation> getRecommendations(
             @PathVariable Long courseId,
-            @RequestHeader(TEMPORARY_USER_ID_HEADER) Long userId, // 수정됨
-            @RequestParam(required = false) String recommender // RecommendationSource Enum을 사용한다면 해당 타입으로 변경
+            @AuthenticationPrincipal Long userId,
+            @RequestParam(required = false) String recommender
     ) {
         return courseService.getRecommendations(courseId, userId, recommender);
     }
