@@ -2,6 +2,7 @@ package com.daytodo.domain.place.dto.request;
 
 import com.daytodo.domain.place.enums.BookmarkSortType;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 
 public class PlaceReqDTO {
@@ -10,6 +11,11 @@ public class PlaceReqDTO {
     public record GetBookmarkList(
         BookmarkSortType sort,
         Long regionId
+    ){}
+
+    // 장소 저장(북마크). placeId = 관광(KorService2) contentId
+    public record CreateBookmark(
+        @NotNull(message = "placeId가 필요합니다.") Long placeId
     ){}
 
     // 장소 검색 조회

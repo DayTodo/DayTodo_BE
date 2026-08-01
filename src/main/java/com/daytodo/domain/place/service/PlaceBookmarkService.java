@@ -1,11 +1,22 @@
 package com.daytodo.domain.place.service;
 
 import com.daytodo.domain.place.converter.BookmarkPlaceConverter;
+import com.daytodo.domain.place.converter.MagazineConverter;
 import com.daytodo.domain.place.dto.request.PlaceReqDTO;
 import com.daytodo.domain.place.dto.response.PlaceResDTO;
+import com.daytodo.domain.place.entity.Place;
 import com.daytodo.domain.place.entity.mapping.BookmarkPlace;
 import com.daytodo.domain.place.enums.BookmarkSortType;
+import com.daytodo.domain.place.exception.code.PlaceErrorCode;
+import com.daytodo.domain.place.infra.TourApiClient;
+import com.daytodo.domain.place.infra.TourApiResponse;
 import com.daytodo.domain.place.repository.BookmarkPlaceRepository;
+import com.daytodo.domain.place.repository.PlaceRepository;
+import com.daytodo.domain.region.entity.Region;
+import com.daytodo.domain.region.repository.RegionRepository;
+import com.daytodo.domain.user.entity.User;
+import com.daytodo.domain.user.repository.UserRepository;
+import com.daytodo.global.apiPayload.exception.ProjectException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +28,10 @@ import java.util.List;
 public class PlaceBookmarkService {
 
     private final BookmarkPlaceRepository bookmarkPlaceRepository;
+    private final PlaceRepository placeRepository;
+    private final RegionRepository regionRepository;
+    private final UserRepository userRepository;
+    private final TourApiClient tourApiClient;
 
     @Transactional(readOnly = true)
     public PlaceResDTO.GetBookmarkList getBookmarkList(
@@ -34,5 +49,122 @@ public class PlaceBookmarkService {
         };
 
         return BookmarkPlaceConverter.toBookmarkList(bookmarkPlaces);
+    }
+
+    /**
+     * 장소 저장(북마크). placeId 는 관광(KorService2) contentId 이다.
+     * 자체 Place 가 없으면 detailCommon2 로 조회해 Place 를 만들어 넣는다(lazy upsert).
+     */
+    @Transactional
+    public PlaceResDTO.CreateBookmark createBookmark(Long userId, Long placeId) {
+        String contentId = String.valueOf(placeId);
+
+        Place place = placeRepository.findByTourContentId(contentId)
+                .orElseGet(() -> placeRepository.save(createPlaceFromTour(contentId)));
+
+        if (bookmarkPlaceRepository.existsByUser_IdAndPlace_PlaceId(userId, place.getPlaceId())) {
+            throw new ProjectException(PlaceErrorCode.DUPLICATE_BOOKMARK);
+        }
+
+        User user = userRepository.getReferenceById(userId);
+        BookmarkPlace saved = bookmarkPlaceRepository.save(new BookmarkPlace(user, place));
+
+        return PlaceResDTO.CreateBookmark.builder()
+                .bookmarkId(saved.getId())
+                .placeId(place.getPlaceId())
+                .build();
+    }
+
+    /**
+     * 장소 저장 해제. 본인 소유 북마크만 하드 삭제한다.
+     */
+    @Transactional
+    public PlaceResDTO.DeleteBookmark deleteBookmark(Long userId, Long bookmarkId) {
+        BookmarkPlace bookmark = bookmarkPlaceRepository.findByIdAndUser_Id(bookmarkId, userId)
+                .orElseThrow(() -> new ProjectException(PlaceErrorCode.BOOKMARK_NOT_FOUND));
+
+        bookmarkPlaceRepository.delete(bookmark);
+
+        return PlaceResDTO.DeleteBookmark.builder()
+                .bookmarkId(bookmarkId)
+                .deleted(true)
+                .build();
+    }
+
+    // 관광 콘텐츠로부터 Place 생성. 존재하지 않는 contentId 면 MAGAZINE_NOT_FOUND.
+    private Place createPlaceFromTour(String contentId) {
+        TourApiResponse.CommonItem common = tourApiClient.detailCommon(contentId);
+        if (common == null) {
+            throw new ProjectException(PlaceErrorCode.MAGAZINE_NOT_FOUND);
+        }
+
+        Region region = resolveRegion(common.areacode(), common.sigungucode());
+        String category = MagazineConverter.categoryName(common.contenttypeid());
+
+        return Place.ofTourContent(
+                contentId,
+                region,
+                nullToEmpty(common.title()),
+                category == null ? "기타" : category,
+                joinAddress(common.addr1(), common.addr2()),
+                parseCoordinate(common.mapy()),   // 위도
+                parseCoordinate(common.mapx()),   // 경도
+                emptyToNull(common.tel()),
+                firstImage(common)
+        );
+    }
+
+    private Region resolveRegion(String areaCode, String sigunguCode) {
+        Integer area = parseInt(areaCode);
+        Integer sigungu = parseInt(sigunguCode);
+        if (area == null || sigungu == null) {
+            return null;
+        }
+        return regionRepository.findFirstByAreaCodeAndSigunguCode(area, sigungu).orElse(null);
+    }
+
+    private static String firstImage(TourApiResponse.CommonItem common) {
+        if (common.firstimage() != null && !common.firstimage().isBlank()) {
+            return common.firstimage();
+        }
+        return emptyToNull(common.firstimage2());
+    }
+
+    private static String joinAddress(String addr1, String addr2) {
+        String base = addr1 == null ? "" : addr1.trim();
+        if (addr2 != null && !addr2.isBlank()) {
+            base = (base + " " + addr2.trim()).trim();
+        }
+        return base;
+    }
+
+    private static double parseCoordinate(String value) {
+        if (value == null || value.isBlank()) {
+            return 0.0;
+        }
+        try {
+            return Double.parseDouble(value.trim());
+        } catch (NumberFormatException e) {
+            return 0.0;
+        }
+    }
+
+    private static Integer parseInt(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        try {
+            return Integer.parseInt(value.trim());
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private static String nullToEmpty(String value) {
+        return value == null ? "" : value;
+    }
+
+    private static String emptyToNull(String value) {
+        return (value == null || value.isBlank()) ? null : value;
     }
 }

@@ -20,8 +20,13 @@ public class Place extends BaseEntity {
     @JoinColumn(name = "region_id")
     private Region region;
 
-    @Column (name = "naver_place_id", nullable = false, unique = true, length = 100)
+    // Naver 출처 장소 식별자. 관광(KorService2) 출처 장소는 값이 없으므로 nullable.
+    @Column (name = "naver_place_id", unique = true, length = 100)
     private String naverPlaceId;
+
+    // 한국관광공사 KorService2 콘텐츠 ID. 관광 출처 장소 식별자.
+    @Column (name = "tour_content_id", unique = true, length = 20)
+    private String tourContentId;
 
     @Column (name = "place_name", nullable = false, length = 100)
     private String placeName;
@@ -49,4 +54,32 @@ public class Place extends BaseEntity {
 
     @Column (name = "image_url", length = 500)
     private String imageUrl;
+
+    /**
+     * 관광(KorService2) 콘텐츠로부터 Place 를 생성한다 (북마크 시 lazy upsert 용).
+     * region 은 관광 지역코드 역매핑 결과이며, 미매핑 시 null 이다.
+     */
+    public static Place ofTourContent(
+            String tourContentId,
+            Region region,
+            String placeName,
+            String category,
+            String address,
+            double latitude,
+            double longitude,
+            String phone,
+            String imageUrl
+    ) {
+        Place place = new Place();
+        place.tourContentId = tourContentId;
+        place.region = region;
+        place.placeName = placeName;
+        place.category = category;
+        place.address = address;
+        place.latitude = latitude;
+        place.longitude = longitude;
+        place.phone = phone;
+        place.imageUrl = imageUrl;
+        return place;
+    }
 }

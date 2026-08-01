@@ -21,6 +21,20 @@ public class PlaceResDTO {
         ){}
     }
 
+    // 장소 저장(북마크) 결과
+    @Builder
+    public record CreateBookmark(
+            Long bookmarkId,
+            Long placeId
+    ){}
+
+    // 장소 저장 해제 결과
+    @Builder
+    public record DeleteBookmark(
+            Long bookmarkId,
+            boolean deleted
+    ){}
+
     // 장소 검색 조회
     public record GetPlaceSearch(
             List<PlaceItem> places
