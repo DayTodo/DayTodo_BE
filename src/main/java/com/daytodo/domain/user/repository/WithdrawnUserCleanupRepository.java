@@ -14,11 +14,7 @@ public class WithdrawnUserCleanupRepository {
         delete("delete from RecommendationComment entity where entity.userId = :userId", userId);
         update("update PlaceRecommendation entity set entity.recommenderId = null where entity.recommenderId = :userId", userId);
 
-        delete("""
-                delete from BookmarkPlace entity
-                where entity.user.id = :userId or entity.bookmarkCategory.user.id = :userId
-                """, userId);
-        delete("delete from BookmarkCategory entity where entity.user.id = :userId", userId);
+        delete("delete from BookmarkPlace entity where entity.user.id = :userId", userId);
         delete("delete from SocialAccount entity where entity.user.id = :userId", userId);
         delete("delete from Notification entity where entity.user.id = :userId", userId);
         delete("delete from UserNotificationSetting entity where entity.user.id = :userId", userId);
