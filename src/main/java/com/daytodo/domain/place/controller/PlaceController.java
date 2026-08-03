@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -36,10 +35,9 @@ public class PlaceController {
         return placeSearchService.search(request);
     }
 
-    // TODO: JWT 인증 적용 후 @AuthenticationPrincipal 로 교체
     @GetMapping("/bookmarks")
     public PlaceResDTO.GetBookmarkList getBookmarkList(
-            @RequestHeader("X-User-Id") Long userId,
+            @AuthenticationPrincipal Long userId,
             @ParameterObject @ModelAttribute PlaceReqDTO.GetBookmarkList request
     ) {
         return placeBookmarkService.getBookmarkList(userId, request);
