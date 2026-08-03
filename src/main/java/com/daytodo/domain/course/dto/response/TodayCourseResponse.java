@@ -6,7 +6,7 @@ import lombok.Builder;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public class CourseResDTO {
+public class TodayCourseResponse {
 
     // 투데이 코스 조회 (오늘 진행 중인 코스가 없으면 todayCourse 는 null)
     public record GetTodayCourse(

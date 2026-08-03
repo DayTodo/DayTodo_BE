@@ -1,7 +1,7 @@
 package com.daytodo.domain.course.controller;
 
-import com.daytodo.domain.course.dto.request.CourseReqDTO;
-import com.daytodo.domain.course.dto.response.CourseResDTO;
+import com.daytodo.domain.course.dto.request.TodayCourseRequest;
+import com.daytodo.domain.course.dto.response.TodayCourseResponse;
 import com.daytodo.domain.course.service.TodayCourseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -20,14 +20,14 @@ public class TodayCourseController {
     private final TodayCourseService todayCourseService;
 
     @GetMapping("/today")
-    public CourseResDTO.GetTodayCourse getTodayCourse(
+    public TodayCourseResponse.GetTodayCourse getTodayCourse(
             @AuthenticationPrincipal Long userId
     ) {
         return todayCourseService.getTodayCourse(userId);
     }
 
     @PostMapping("/{courseId}/complete")
-    public CourseResDTO.CompleteCourse completeCourse(
+    public TodayCourseResponse.CompleteCourse completeCourse(
             @AuthenticationPrincipal Long userId,
             @PathVariable Long courseId
     ) {
@@ -35,10 +35,10 @@ public class TodayCourseController {
     }
 
     @PostMapping("/{courseId}/photos")
-    public CourseResDTO.SaveMemoryPhotos saveMemoryPhotos(
+    public TodayCourseResponse.SaveMemoryPhotos saveMemoryPhotos(
             @AuthenticationPrincipal Long userId,
             @PathVariable Long courseId,
-            @RequestBody CourseReqDTO.SaveMemoryPhotos request
+            @RequestBody TodayCourseRequest.SaveMemoryPhotos request
     ) {
         return todayCourseService.saveMemoryPhotos(userId, courseId, request);
     }

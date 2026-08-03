@@ -2,7 +2,7 @@ package com.daytodo.domain.course.dto.request;
 
 import java.util.List;
 
-public class CourseReqDTO {
+public class TodayCourseRequest {
 
     /*
      * 추억 사진 저장

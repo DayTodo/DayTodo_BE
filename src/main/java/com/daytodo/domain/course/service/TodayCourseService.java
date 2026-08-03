@@ -2,8 +2,8 @@ package com.daytodo.domain.course.service;
 
 import com.daytodo.domain.course.converter.MemoryPhotoConverter;
 import com.daytodo.domain.course.converter.TodayCourseConverter;
-import com.daytodo.domain.course.dto.request.CourseReqDTO;
-import com.daytodo.domain.course.dto.response.CourseResDTO;
+import com.daytodo.domain.course.dto.request.TodayCourseRequest;
+import com.daytodo.domain.course.dto.response.TodayCourseResponse;
 import com.daytodo.domain.course.entity.Course;
 import com.daytodo.domain.course.entity.CourseMember;
 import com.daytodo.domain.course.entity.CoursePlace;
@@ -38,7 +38,7 @@ public class TodayCourseService {
      * 오늘 진행 중인 코스가 없으면 예외가 아니라 todayCourse: null 로 응답한다.
      */
     @Transactional(readOnly = true)
-    public CourseResDTO.GetTodayCourse getTodayCourse(Long userId) {
+    public TodayCourseResponse.GetTodayCourse getTodayCourse(Long userId) {
         Optional<Course> todayCourse = courseRepository.findMemberCoursesByDateAndStatus(
                 userId,
                 LocalDate.now(),
@@ -64,7 +64,7 @@ public class TodayCourseService {
      * 진행 중(IN_PROGRESS)인 코스만 완료 처리할 수 있다.
      */
     @Transactional
-    public CourseResDTO.CompleteCourse completeCourse(Long userId, Long courseId) {
+    public TodayCourseResponse.CompleteCourse completeCourse(Long userId, Long courseId) {
         Course course = getCourseAsMember(userId, courseId);
 
         if (!course.isInProgress()) {
@@ -81,10 +81,10 @@ public class TodayCourseService {
      * diary_id 는 비워둔 채 저장하고, 이후 해당 날짜의 일기가 작성될 때 연결한다.
      */
     @Transactional
-    public CourseResDTO.SaveMemoryPhotos saveMemoryPhotos(
+    public TodayCourseResponse.SaveMemoryPhotos saveMemoryPhotos(
             Long userId,
             Long courseId,
-            CourseReqDTO.SaveMemoryPhotos request
+            TodayCourseRequest.SaveMemoryPhotos request
     ) {
         Course course = getCourseAsMember(userId, courseId);
 
@@ -105,7 +105,7 @@ public class TodayCourseService {
     }
 
     // 공백 URL 은 걸러내고, 저장할 이미지가 하나도 없으면 400 으로 응답한다.
-    private List<String> extractImageUrls(CourseReqDTO.SaveMemoryPhotos request) {
+    private List<String> extractImageUrls(TodayCourseRequest.SaveMemoryPhotos request) {
         if (request == null || request.imageUrls() == null) {
             throw new ProjectException(CourseErrorCode.EMPTY_MEMORY_PHOTO);
         }

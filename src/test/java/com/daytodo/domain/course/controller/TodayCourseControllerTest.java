@@ -1,6 +1,6 @@
 package com.daytodo.domain.course.controller;
 
-import com.daytodo.domain.course.dto.response.CourseResDTO;
+import com.daytodo.domain.course.dto.response.TodayCourseResponse;
 import com.daytodo.domain.course.exception.code.CourseErrorCode;
 import com.daytodo.domain.course.service.TodayCourseService;
 import com.daytodo.global.apiPayload.exception.ProjectException;
@@ -37,7 +37,7 @@ class TodayCourseControllerTest {
     @DisplayName("오늘 진행 중인 코스가 없으면 200과 함께 todayCourse가 null로 내려간다")
     void todayCourseNull() throws Exception {
         given(todayCourseService.getTodayCourse(anyLong()))
-                .willReturn(new CourseResDTO.GetTodayCourse(null));
+                .willReturn(new TodayCourseResponse.GetTodayCourse(null));
 
         mockMvc.perform(get("/courses/today").header("X-User-Id", 1L))
                 .andExpect(status().isOk())
