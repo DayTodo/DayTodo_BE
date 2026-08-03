@@ -47,7 +47,9 @@ class TodayCourseControllerTest {
     @Test
     @DisplayName("저장할 이미지가 없으면 400 INVALID_PARAMETER로 응답한다")
     void emptyImageUrls() throws Exception {
-        given(todayCourseService.saveMemoryPhotos(anyLong(), anyLong(), any()))
+        // WebMvc 슬라이스에선 인증 principal이 태워지지 않아 userId 인자는 null 이므로 any() 로 매칭한다.
+        // (이 테스트의 검증 대상은 서비스 예외 -> 400 INVALID_PARAMETER 매핑이다.)
+        given(todayCourseService.saveMemoryPhotos(any(), anyLong(), any()))
                 .willThrow(new ProjectException(CourseErrorCode.EMPTY_MEMORY_PHOTO));
 
         mockMvc.perform(post("/courses/1/photos")
