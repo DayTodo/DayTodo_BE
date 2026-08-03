@@ -36,6 +36,13 @@ public class TodayCourseConverter {
         );
     }
 
+    // 코스 장소 추가/순서변경 응답: 장소 목록 -> places 응답
+    public static TodayCourseResponse.GetCoursePlaces toCoursePlaces(List<CoursePlace> coursePlaces) {
+        return new TodayCourseResponse.GetCoursePlaces(
+                coursePlaces.stream().map(TodayCourseConverter::toPlaceItem).toList()
+        );
+    }
+
     public static TodayCourseResponse.CompleteCourse toCompleteCourse(Course course) {
         return TodayCourseResponse.CompleteCourse.builder()
                 .courseId(course.getCourseId())

@@ -521,29 +521,26 @@ public class CourseService {
             throw new ProjectException(CourseErrorCode.RECOMMENDATION_NOT_FOUND);
         }
 
-        // 이미 코스에 추가된 장소인지 중복 확인
-        if (coursePlaceRepository.existsByCourse_CourseIdAndPlace_PlaceId(courseId, recommendation.getPlace().getPlaceId())) {
-            throw new ProjectException(CourseErrorCode.DUPLICATE_PLACE);
-        }
-
-        // 마지막 장소 순서 구하기 (없으면 0)
-        Integer maxOrder = coursePlaceRepository.findMaxPlaceOrderByCourse_CourseId(courseId).orElse(0);
-
-        // 추가자(User) 조회
-        User addedByUser = userService.getActiveUser(userId);
-
-        // Builder를 이용한 CoursePlace 생성
-        CoursePlace coursePlace = CoursePlace.builder()
-                .course(course)
-                .place(recommendation.getPlace())
-                .addedBy(addedByUser)
-                .placeOrder(maxOrder + 1)
-                .coursePlaceStatus(CoursePlaceStatus.PENDING)
-                .build();
-
-        coursePlaceRepository.save(coursePlace);
+        CoursePlace coursePlace = appendPlaceToCourse(course, recommendation.getPlace(), userId);
 
         return new CourseResponse.CoursePlaceAdded(coursePlace.getCoursePlaceId());
+    }
+
+    // 코스 맨 뒤에 장소 추가 (추천담기/투데이추가 공통): 중복확인 + 마지막순서+1 + CoursePlace 생성
+    // 투데이 장소추가(TDY-006)는 TodayCourseService 가 이 메서드를 재사용한다.
+    public CoursePlace appendPlaceToCourse(Course course, Place place, Long userId) {
+        if (coursePlaceRepository.existsByCourse_CourseIdAndPlace_PlaceId(course.getCourseId(), place.getPlaceId())) {
+            throw new ProjectException(CourseErrorCode.DUPLICATE_PLACE);
+        }
+        int nextOrder = coursePlaceRepository.findMaxPlaceOrderByCourse_CourseId(course.getCourseId()).orElse(0) + 1;
+        User addedBy = userService.getActiveUser(userId);
+        return coursePlaceRepository.save(CoursePlace.builder()
+                .course(course)
+                .place(place)
+                .addedBy(addedBy)
+                .placeOrder(nextOrder)
+                .coursePlaceStatus(CoursePlaceStatus.PENDING)
+                .build());
     }
 
     @Transactional

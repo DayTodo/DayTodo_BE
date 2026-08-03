@@ -44,5 +44,8 @@ public class CoursePlace extends BaseCreatedEntity {
     @Column(name = "visited_at")
     private LocalDateTime visitedAt;
 
-
+    // 코스 장소 순서 변경
+    public void changeOrder(int placeOrder) {
+        this.placeOrder = placeOrder;
+    }
 }

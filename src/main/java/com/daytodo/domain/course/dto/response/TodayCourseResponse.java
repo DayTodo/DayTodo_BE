@@ -35,6 +35,12 @@ public class TodayCourseResponse {
         ){}
     }
 
+    // 코스 장소 추가/순서변경 응답: 추가·변경 후 전체 목록을 순서대로 반환
+    // (투데이 조회의 장소 목록과 동일한 형태 재사용: coursePlaceId/placeOrder/placeName/category)
+    public record GetCoursePlaces(
+            List<GetTodayCourse.PlaceItem> places
+    ){}
+
     // 코스 종료
     @Builder
     public record CompleteCourse(
