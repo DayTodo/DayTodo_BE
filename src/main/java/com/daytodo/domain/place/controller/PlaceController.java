@@ -6,6 +6,8 @@ import com.daytodo.domain.place.dto.response.PlaceResDTO;
 import com.daytodo.domain.place.service.MagazineService;
 import com.daytodo.domain.place.service.PlaceBookmarkService;
 import com.daytodo.domain.place.service.PlaceSearchService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "Place")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/places")
@@ -28,6 +31,7 @@ public class PlaceController {
     private final PlaceBookmarkService placeBookmarkService;
     private final MagazineService magazineService;
 
+    @Operation(summary = "장소 검색")
     @GetMapping("/search")
     public PlaceResDTO.GetPlaceSearch searchPlaces(
             @ParameterObject @ModelAttribute @Valid PlaceReqDTO.GetPlaceSearch request
@@ -35,6 +39,7 @@ public class PlaceController {
         return placeSearchService.search(request);
     }
 
+    @Operation(summary = "저장한 매거진 목록 조회")
     @GetMapping("/bookmarks")
     public PlaceResDTO.GetBookmarkList getBookmarkList(
             @AuthenticationPrincipal Long userId,
@@ -43,7 +48,7 @@ public class PlaceController {
         return placeBookmarkService.getBookmarkList(userId, request);
     }
 
-    // 오늘의 Pick 매거진 목록 (HOM-004)
+    @Operation(summary = "오늘의 Pick 매거진 목록 조회")
     @GetMapping("/magazines")
     public MagazineResDTO.GetMagazineList getMagazines(
             @AuthenticationPrincipal Long userId
@@ -51,7 +56,7 @@ public class PlaceController {
         return magazineService.getMagazineList(userId);
     }
 
-    // 매거진 상세
+    @Operation(summary = "매거진 상세 조회")
     @GetMapping("/magazines/{magazineId}")
     public MagazineResDTO.GetMagazineDetail getMagazineDetail(
             @PathVariable Long magazineId
@@ -59,7 +64,7 @@ public class PlaceController {
         return magazineService.getMagazineDetail(magazineId);
     }
 
-    // 매거진 사진 목록 (MAG-003)
+    @Operation(summary = "매거진 사진 더보기")
     @GetMapping("/magazines/{magazineId}/photos")
     public MagazineResDTO.GetMagazinePhotos getMagazinePhotos(
             @PathVariable Long magazineId
@@ -67,7 +72,7 @@ public class PlaceController {
         return magazineService.getMagazinePhotos(magazineId);
     }
 
-    // 장소 저장(북마크) (MAG-004 / SAV-001)
+    @Operation(summary = "매거진 장소 저장")
     @PostMapping("/bookmarks")
     public PlaceResDTO.CreateBookmark createBookmark(
             @AuthenticationPrincipal Long userId,
@@ -76,7 +81,7 @@ public class PlaceController {
         return placeBookmarkService.createBookmark(userId, request.placeId());
     }
 
-    // 장소 저장 해제
+    @Operation(summary = "매거진 장소 저장 해제")
     @DeleteMapping("/bookmarks/{bookmarkId}")
     public PlaceResDTO.DeleteBookmark deleteBookmark(
             @AuthenticationPrincipal Long userId,
