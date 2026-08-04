@@ -529,6 +529,11 @@ public class CourseService {
     // 코스 맨 뒤에 장소 추가 (추천담기/투데이추가 공통): 중복확인 + 마지막순서+1 + CoursePlace 생성
     // 투데이 장소추가(TDY-006)는 TodayCourseService 가 이 메서드를 재사용한다.
     public CoursePlace appendPlaceToCourse(Course course, Place place, Long userId) {
+        // 여러 요청이 동시에 장소를 추가해도 placeOrder 가 겹치지 않도록,
+        // 중복확인~순번계산~저장 구간을 코스 행 쓰기 락으로 직렬화한다. (추억 사진 저장과 동일 패턴)
+        courseRepository.findByIdForUpdate(course.getCourseId())
+                .orElseThrow(() -> new ProjectException(CourseErrorCode.COURSE_NOT_FOUND));
+
         if (coursePlaceRepository.existsByCourse_CourseIdAndPlace_PlaceId(course.getCourseId(), place.getPlaceId())) {
             throw new ProjectException(CourseErrorCode.DUPLICATE_PLACE);
         }

@@ -10,8 +10,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.util.UriUtils;
 
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -28,6 +30,8 @@ public class TourApiClient {
     private static final String DETAIL_COMMON = "/detailCommon2";
     private static final String DETAIL_INTRO = "/detailIntro2";
     private static final String DETAIL_IMAGE = "/detailImage2";
+
+    private static final String RESULT_CODE_SUCCESS = "0000";
 
     private final RestClient tourRestClient;
     private final TourApiProperties tourApiProperties;
@@ -50,7 +54,7 @@ public class TourApiClient {
 
     /** 공통정보(제목·주소·개요 등). 없으면 null. */
     public TourApiResponse.CommonItem detailCommon(String contentId) {
-        URI uri = buildUri(DETAIL_COMMON, b -> b.queryParam("contentId", contentId));
+        URI uri = buildUri(DETAIL_COMMON, b -> b.queryParam("contentId", encode(contentId)));
         List<TourApiResponse.CommonItem> items =
                 call(uri, new ParameterizedTypeReference<TourApiResponse<TourApiResponse.CommonItem>>() {}).items();
         return items.isEmpty() ? null : items.get(0);
@@ -59,8 +63,8 @@ public class TourApiClient {
     /** 소개정보(영업시간 등). contentTypeId 필수. 없으면 null. */
     public TourApiResponse.IntroItem detailIntro(String contentId, String contentTypeId) {
         URI uri = buildUri(DETAIL_INTRO, b -> {
-            b.queryParam("contentId", contentId);
-            b.queryParam("contentTypeId", contentTypeId);
+            b.queryParam("contentId", encode(contentId));
+            b.queryParam("contentTypeId", encode(contentTypeId));
         });
         List<TourApiResponse.IntroItem> items =
                 call(uri, new ParameterizedTypeReference<TourApiResponse<TourApiResponse.IntroItem>>() {}).items();
@@ -70,7 +74,7 @@ public class TourApiClient {
     /** 이미지정보(콘텐츠 사진). image_order 정렬은 호출부 책임. */
     public List<TourApiResponse.ImageItem> detailImage(String contentId) {
         URI uri = buildUri(DETAIL_IMAGE, b -> {
-            b.queryParam("contentId", contentId);
+            b.queryParam("contentId", encode(contentId));
             b.queryParam("imageYN", "Y");
             b.queryParam("numOfRows", 30);
             b.queryParam("pageNo", 1);
@@ -79,8 +83,9 @@ public class TourApiClient {
     }
 
     private <T> TourApiResponse<T> call(URI uri, ParameterizedTypeReference<TourApiResponse<T>> type) {
+        TourApiResponse<T> response;
         try {
-            return tourRestClient.get()
+            response = tourRestClient.get()
                     .uri(uri)
                     .retrieve()
                     .body(type);
@@ -88,12 +93,29 @@ public class TourApiClient {
             log.error("KorService2 호출 실패. uri={}", uri.getPath(), e);
             throw new ProjectException(PlaceErrorCode.TOUR_API_ERROR);
         }
+
+        // body 가 없거나(200 이어도 본문 없음) header 가 없으면 오류로 처리한다.
+        if (response == null || response.response() == null || response.response().header() == null) {
+            log.error("KorService2 응답 본문이 비어있습니다. uri={}", uri.getPath());
+            throw new ProjectException(PlaceErrorCode.TOUR_API_ERROR);
+        }
+
+        // KorService2 는 HTTP 200 이어도 resultCode 가 0000 이 아니면 실패다.
+        TourApiResponse.Header header = response.response().header();
+        if (!RESULT_CODE_SUCCESS.equals(header.resultCode())) {
+            log.error("KorService2 오류 응답. uri={}, resultCode={}, resultMsg={}",
+                    uri.getPath(), header.resultCode(), header.resultMsg());
+            throw new ProjectException(PlaceErrorCode.TOUR_API_ERROR);
+        }
+
+        return response;
     }
 
     /**
      * 공통 파라미터(serviceKey, MobileOS, MobileApp, _type)를 붙인 절대 URI 생성.
      * serviceKey 는 이미 인코딩된 키이므로 build(true) 로 이중 인코딩을 막는다.
-     * (그 외 파라미터 값은 영숫자라 재인코딩이 필요 없다.)
+     * build(true) 는 모든 값이 인코딩되어 있다고 가정하므로,
+     * contentId 등 외부 입력값은 호출부에서 {@link #encode(String)} 로 미리 인코딩해 넘긴다.
      */
     private URI buildUri(String path, Consumer<UriComponentsBuilder> params) {
         UriComponentsBuilder builder = UriComponentsBuilder
@@ -104,5 +126,10 @@ public class TourApiClient {
                 .queryParam("_type", "json");
         params.accept(builder);
         return builder.build(true).toUri();
+    }
+
+    // build(true) 로 조립하기 위해 외부 입력 쿼리 값을 미리 인코딩한다.
+    private static String encode(String value) {
+        return value == null ? null : UriUtils.encode(value, StandardCharsets.UTF_8);
     }
 }

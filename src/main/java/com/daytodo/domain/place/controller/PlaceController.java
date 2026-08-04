@@ -78,7 +78,7 @@ public class PlaceController {
             @AuthenticationPrincipal Long userId,
             @Valid @RequestBody PlaceReqDTO.CreateBookmark request
     ) {
-        return placeBookmarkService.createBookmark(userId, request.placeId());
+        return placeBookmarkService.createBookmark(userId, request.contentId());
     }
 
     @Operation(summary = "매거진 장소 저장 해제")

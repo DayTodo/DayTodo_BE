@@ -18,6 +18,7 @@ import com.daytodo.domain.user.entity.User;
 import com.daytodo.domain.user.repository.UserRepository;
 import com.daytodo.global.apiPayload.exception.ProjectException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,27 +53,49 @@ public class PlaceBookmarkService {
     }
 
     /**
-     * 장소 저장(북마크). placeId 는 관광(KorService2) contentId 이다.
+     * 장소 저장(북마크). contentId 는 관광(KorService2) 콘텐츠 ID 이며, 내부 Place PK 가 아니다.
      * 자체 Place 가 없으면 detailCommon2 로 조회해 Place 를 만들어 넣는다(lazy upsert).
      */
     @Transactional
-    public PlaceResDTO.CreateBookmark createBookmark(Long userId, Long placeId) {
-        String contentId = String.valueOf(placeId);
+    public PlaceResDTO.CreateBookmark createBookmark(Long userId, Long contentId) {
+        String tourContentId = String.valueOf(contentId);
 
-        Place place = placeRepository.findByTourContentId(contentId)
-                .orElseGet(() -> placeRepository.save(createPlaceFromTour(contentId)));
+        Place place = findOrCreatePlace(tourContentId);
 
         if (bookmarkPlaceRepository.existsByUser_IdAndPlace_PlaceId(userId, place.getPlaceId())) {
             throw new ProjectException(PlaceErrorCode.DUPLICATE_BOOKMARK);
         }
 
         User user = userRepository.getReferenceById(userId);
-        BookmarkPlace saved = bookmarkPlaceRepository.save(new BookmarkPlace(user, place));
+        BookmarkPlace saved;
+        try {
+            saved = bookmarkPlaceRepository.saveAndFlush(new BookmarkPlace(user, place));
+        } catch (DataIntegrityViolationException e) {
+            // 동시에 동일 요청이 들어와 유니크 제약(uk_bookmark_place_user_place)에 걸린 경우
+            throw new ProjectException(PlaceErrorCode.DUPLICATE_BOOKMARK);
+        }
 
         return PlaceResDTO.CreateBookmark.builder()
                 .bookmarkId(saved.getId())
                 .placeId(place.getPlaceId())
                 .build();
+    }
+
+    /**
+     * 관광 콘텐츠 ID 로 Place 를 조회하거나 없으면 생성한다.
+     * 동시에 동일 contentId 로 생성 요청이 들어오면 tour_content_id 유니크 제약에 걸릴 수 있으므로,
+     * DataIntegrityViolationException 발생 시 상대 트랜잭션이 저장한 Place 를 재조회한다.
+     */
+    private Place findOrCreatePlace(String tourContentId) {
+        return placeRepository.findByTourContentId(tourContentId)
+                .orElseGet(() -> {
+                    try {
+                        return placeRepository.saveAndFlush(createPlaceFromTour(tourContentId));
+                    } catch (DataIntegrityViolationException e) {
+                        return placeRepository.findByTourContentId(tourContentId)
+                                .orElseThrow(() -> new ProjectException(PlaceErrorCode.TOUR_API_ERROR));
+                    }
+                });
     }
 
     /**

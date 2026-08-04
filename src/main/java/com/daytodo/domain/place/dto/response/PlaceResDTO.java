@@ -21,7 +21,7 @@ public class PlaceResDTO {
         ){}
     }
 
-    // 장소 저장(북마크) 결과
+    // 장소 저장(북마크) 결과. placeId 는 내부 Place PK (요청의 contentId 와 다름).
     @Builder
     public record CreateBookmark(
             Long bookmarkId,
