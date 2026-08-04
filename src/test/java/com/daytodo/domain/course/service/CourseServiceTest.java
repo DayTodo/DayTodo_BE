@@ -21,6 +21,10 @@ import com.daytodo.domain.region.repository.RegionRepository;
 import com.daytodo.domain.user.entity.User;
 import com.daytodo.domain.user.enums.LoginType;
 import com.daytodo.domain.user.service.UserService;
+import com.daytodo.domain.place.repository.PlaceRecommendationRepository;
+import com.daytodo.domain.place.repository.RecommendationLikeRepository;
+import com.daytodo.domain.place.repository.PlaceRepository;
+import com.daytodo.domain.place.repository.RecommendationCommentRepository;
 import com.daytodo.global.apiPayload.exception.ProjectException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -62,6 +66,10 @@ class CourseServiceTest {
     @Mock InviteCodeRepository inviteCodeRepository;
     @Mock RegionRepository regionRepository;
     @Mock UserService userService;
+    @Mock PlaceRecommendationRepository placeRecommendationRepository;
+    @Mock RecommendationLikeRepository recommendationLikeRepository;
+    @Mock PlaceRepository placeRepository;
+    @Mock RecommendationCommentRepository recommendationCommentRepository;
 
     CourseService courseService;
     User user;
@@ -76,6 +84,10 @@ class CourseServiceTest {
                 inviteCodeRepository,
                 regionRepository,
                 userService,
+                placeRecommendationRepository,
+                recommendationLikeRepository,
+                placeRepository,
+                recommendationCommentRepository,
                 CLOCK
         );
         user = new User("user@example.com", "password", "user", null, LoginType.LOCAL);

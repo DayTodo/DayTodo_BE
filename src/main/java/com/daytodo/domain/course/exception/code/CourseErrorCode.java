@@ -35,7 +35,8 @@ public enum CourseErrorCode implements BaseErrorCode {
     RECOMMENDATION_ALREADY_LIKED(HttpStatus.CONFLICT, "RECOMMENDATION_ALREADY_LIKED", "이미 좋아요를 누른 추천입니다."),
     DUPLICATE_PLACE(HttpStatus.CONFLICT, "DUPLICATE_PLACE", "이미 코스에 추가된 장소입니다."),
     PLACE_NOT_FOUND(HttpStatus.NOT_FOUND, "PLACE_NOT_FOUND", "장소를 찾을 수 없습니다."),
-    DUPLICATE_RECOMMENDATION(HttpStatus.CONFLICT, "DUPLICATE_RECOMMENDATION", "이미 추천된 장소입니다.");
+    DUPLICATE_RECOMMENDATION(HttpStatus.CONFLICT, "DUPLICATE_RECOMMENDATION", "이미 추천된 장소입니다."),
+    COURSE_RECOMMENDATION_FAILED(HttpStatus.CONFLICT, "COURSE_RECOMMENDATION_FAILED", "추천 코스를 생성할 수 없습니다.");
 
     private final HttpStatus status;
     private final String code;

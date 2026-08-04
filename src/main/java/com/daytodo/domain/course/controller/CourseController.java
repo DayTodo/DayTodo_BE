@@ -3,6 +3,7 @@ package com.daytodo.domain.course.controller;
 import com.daytodo.domain.course.dto.CourseRequest;
 import com.daytodo.domain.course.dto.CourseResponse;
 import com.daytodo.domain.course.service.CourseService;
+import com.daytodo.domain.course.service.CourseAiRecommendationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -21,6 +22,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CourseController {
     private final CourseService courseService;
+    private final CourseAiRecommendationService courseAiRecommendationService;
 
     @Operation(summary = "홈 및 생성한 코스 목록 통합 조회")
     @GetMapping
@@ -51,6 +53,14 @@ public class CourseController {
             @Valid @RequestBody CourseRequest.Create request
     ) {
         return courseService.createCourse(userId, request);
+    }
+
+    @Operation(summary = "AI 추천 코스 2종 조회")
+    @PostMapping("/ai-recommendations")
+    public CourseResponse.AiRecommendations getAiRecommendations(
+            @Valid @RequestBody CourseRequest.AiRecommendation request
+    ) {
+        return courseAiRecommendationService.recommend(request);
     }
 
     @Operation(summary = "초대코드로 코스 참가")
