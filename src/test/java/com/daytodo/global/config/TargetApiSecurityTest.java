@@ -90,6 +90,15 @@ class TargetApiSecurityTest {
     }
 
     @Test
+    void aiRecommendationApiRejectsRequestWithoutJwt() throws Exception {
+        mockMvc.perform(post("/courses/ai-recommendations")
+                        .contentType("application/json")
+                        .content("{\"regionId\":1,\"minPrice\":10000,\"maxPrice\":30000}"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"));
+    }
+
+    @Test
     void calendarUsesJwtPrincipal() throws Exception {
         when(courseService.getCalendar(1L, 2026, 7))
                 .thenReturn(new CourseResponse.Calendar(2026, 7, List.of()));
