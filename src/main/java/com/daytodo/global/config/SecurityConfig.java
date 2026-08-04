@@ -103,6 +103,8 @@ public class SecurityConfig {
                                 "/courses",
                                 "/courses/join"
                         ).authenticated()
+                        // AI 추천 기능의 수동 테스트가 끝나면 이 허용 규칙을 제거하고 JWT 인증으로 되돌린다.
+                        .requestMatchers(HttpMethod.POST, "/courses/ai-recommendations").permitAll()
                         .requestMatchers(LEGACY_PERMIT_ALL_COURSE_PATHS).permitAll()
                         .requestMatchers(PERMIT_ALL_PATHS).permitAll()
                         .anyRequest().authenticated()

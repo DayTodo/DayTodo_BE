@@ -39,4 +39,12 @@ public class PlacePriceEstimate {
     // 추론 근거
     @Column (name = "reason", length = 500)
     private String reason;
+
+    public PlacePriceEstimate(Place place, int minPrice, int maxPrice, double confidence, String reason) {
+        this.place = place;
+        this.minPrice = minPrice;
+        this.maxPrice = maxPrice;
+        this.confidence = confidence;
+        this.reason = reason;
+    }
 }
