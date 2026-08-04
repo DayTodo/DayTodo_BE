@@ -58,6 +58,7 @@ public class CourseController {
     @Operation(summary = "AI 추천 코스 2종 조회")
     @PostMapping("/ai-recommendations")
     public CourseResponse.AiRecommendations getAiRecommendations(
+            @AuthenticationPrincipal Long userId,
             @Valid @RequestBody CourseRequest.AiRecommendation request
     ) {
         return courseAiRecommendationService.recommend(request);
