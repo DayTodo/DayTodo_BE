@@ -1,7 +1,6 @@
 package com.daytodo.domain.user.service;
 
 import com.daytodo.domain.user.dto.UserRequest;
-import com.daytodo.domain.user.entity.FcmToken;
 import com.daytodo.domain.user.entity.User;
 import com.daytodo.domain.user.entity.UserNotificationSetting;
 import com.daytodo.domain.user.enums.UserStatus;
@@ -30,11 +29,7 @@ public class FcmTokenService {
         settingRepository.findByUser_Id(userId)
                 .orElseGet(() -> settingRepository.save(new UserNotificationSetting(user)));
 
-        fcmTokenRepository.findByToken(request.token())
-                .ifPresentOrElse(
-                        token -> token.registerFor(user, request.platform()),
-                        () -> fcmTokenRepository.save(new FcmToken(user, request.token(), request.platform()))
-                );
+        fcmTokenRepository.upsert(user.getId(), request.token(), request.platform().name());
     }
 
     @Transactional

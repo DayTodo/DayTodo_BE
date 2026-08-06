@@ -5,6 +5,7 @@ import com.daytodo.domain.user.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
@@ -23,6 +24,7 @@ public class NotificationDispatchService {
     private final NotificationDeliveryWorker deliveryWorker;
     private final Clock clock;
 
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void dispatchRetryable() {
         notificationRepository.findRetryableIds(
                         EnumSet.of(NotificationDeliveryStatus.PENDING, NotificationDeliveryStatus.FAILED),
