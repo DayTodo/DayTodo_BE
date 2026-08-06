@@ -43,7 +43,7 @@ public enum CourseErrorCode implements BaseErrorCode {
 
     // 코스 장소 순서 변경
     INVALID_PLACE_ORDER(HttpStatus.BAD_REQUEST, "INVALID_PARAMETER", "순서 정보가 올바르지 않습니다."),
-    COURSE_PLACE_NOT_FOUND(HttpStatus.NOT_FOUND, "COURSE_PLACE_NOT_FOUND", "코스에 속하지 않는 장소가 포함되어 있습니다.");
+    COURSE_PLACE_NOT_FOUND(HttpStatus.NOT_FOUND, "COURSE_PLACE_NOT_FOUND", "코스에 속하지 않는 장소가 포함되어 있습니다."),
     COURSE_RECOMMENDATION_FAILED(HttpStatus.CONFLICT, "COURSE_RECOMMENDATION_FAILED", "추천 코스를 생성할 수 없습니다.");
 
     private final HttpStatus status;
