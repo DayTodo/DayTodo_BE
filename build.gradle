@@ -56,6 +56,9 @@ dependencies {
 	// AWS S3
 	implementation platform('software.amazon.awssdk:bom:2.41.24')
 	implementation 'software.amazon.awssdk:s3'
+
+	// Firebase Cloud Messaging
+	implementation 'com.google.firebase:firebase-admin:9.10.0'
 }
 
 tasks.named('test') {

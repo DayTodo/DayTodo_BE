@@ -19,9 +19,7 @@ public final class UserResponse {
     }
 
     public record NotificationSettings(
-            boolean pushEnabled,
-            boolean courseD1Enabled,
-            boolean courseD0Enabled
+            boolean pushEnabled
     ) {
     }
 

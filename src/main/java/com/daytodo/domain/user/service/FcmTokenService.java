@@ -1,11 +1,12 @@
 package com.daytodo.domain.user.service;
 
 import com.daytodo.domain.user.dto.UserRequest;
-import com.daytodo.domain.user.dto.UserResponse;
+import com.daytodo.domain.user.entity.FcmToken;
 import com.daytodo.domain.user.entity.User;
 import com.daytodo.domain.user.entity.UserNotificationSetting;
 import com.daytodo.domain.user.enums.UserStatus;
 import com.daytodo.domain.user.exception.code.UserErrorCode;
+import com.daytodo.domain.user.repository.FcmTokenRepository;
 import com.daytodo.domain.user.repository.UserNotificationSettingRepository;
 import com.daytodo.domain.user.repository.UserRepository;
 import com.daytodo.global.apiPayload.exception.ProjectException;
@@ -15,43 +16,35 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
-public class UserNotificationService {
+public class FcmTokenService {
 
     private final UserRepository userRepository;
     private final UserNotificationSettingRepository settingRepository;
+    private final FcmTokenRepository fcmTokenRepository;
 
-    public UserResponse.NotificationSettings getSettings(Long userId) {
-        requireActiveUser(userId);
-        return settingRepository.findByUser_Id(userId)
-                .map(this::toResponse)
-                .orElseGet(() -> new UserResponse.NotificationSettings(true));
+    @Transactional
+    public void register(Long userId, UserRequest.RegisterFcmToken request) {
+        User user = userRepository.findActiveUserForUpdate(userId, UserStatus.ACTIVE)
+                .orElseThrow(() -> new ProjectException(UserErrorCode.USER_NOT_FOUND));
+
+        settingRepository.findByUser_Id(userId)
+                .orElseGet(() -> settingRepository.save(new UserNotificationSetting(user)));
+
+        fcmTokenRepository.findByToken(request.token())
+                .ifPresentOrElse(
+                        token -> token.registerFor(user, request.platform()),
+                        () -> fcmTokenRepository.save(new FcmToken(user, request.token(), request.platform()))
+                );
     }
 
     @Transactional
-    public UserResponse.NotificationSettings updateSettings(
-            Long userId,
-            UserRequest.UpdateNotificationSettings request
-    ) {
-        User user = userRepository.findActiveUserForUpdate(userId, UserStatus.ACTIVE)
-                .orElseThrow(() -> new ProjectException(UserErrorCode.USER_NOT_FOUND));
-        UserNotificationSetting setting = settingRepository.findByUser_Id(userId)
-                .orElseGet(() -> new UserNotificationSetting(user));
-        setting.updatePushEnabled(request.pushEnabled());
-        if (setting.getId() == null) {
-            settingRepository.save(setting);
-        }
-        return toResponse(setting);
+    public void delete(Long userId, UserRequest.DeleteFcmToken request) {
+        requireActiveUser(userId);
+        fcmTokenRepository.deleteByTokenAndUser_Id(request.token(), userId);
     }
 
     private void requireActiveUser(Long userId) {
         userRepository.findByIdAndUserStatus(userId, UserStatus.ACTIVE)
                 .orElseThrow(() -> new ProjectException(UserErrorCode.USER_NOT_FOUND));
-    }
-
-    private UserResponse.NotificationSettings toResponse(UserNotificationSetting setting) {
-        return new UserResponse.NotificationSettings(
-                setting.isPushEnabled()
-        );
     }
 }

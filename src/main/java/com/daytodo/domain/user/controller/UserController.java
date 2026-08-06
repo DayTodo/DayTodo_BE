@@ -3,6 +3,7 @@ package com.daytodo.domain.user.controller;
 import com.daytodo.domain.user.dto.UserRequest;
 import com.daytodo.domain.user.dto.UserResponse;
 import com.daytodo.domain.user.service.FeedbackService;
+import com.daytodo.domain.user.service.FcmTokenService;
 import com.daytodo.domain.user.service.PolicyService;
 import com.daytodo.domain.user.service.ProfileService;
 import com.daytodo.domain.user.service.UserNotificationService;
@@ -34,6 +35,7 @@ public class UserController {
     private final UserNotificationService notificationService;
     private final FeedbackService feedbackService;
     private final PolicyService policyService;
+    private final FcmTokenService fcmTokenService;
 
     @Operation(summary = "프로필 조회")
     @GetMapping("/profile")
@@ -94,6 +96,26 @@ public class UserController {
             @Valid @RequestBody UserRequest.UpdateNotificationSettings request
     ) {
         return notificationService.updateSettings(userId, request);
+    }
+
+    @Operation(summary = "FCM 토큰 등록 또는 갱신")
+    @PostMapping("/fcm-token")
+    public ResponseEntity<Void> registerFcmToken(
+            @AuthenticationPrincipal Long userId,
+            @Valid @RequestBody UserRequest.RegisterFcmToken request
+    ) {
+        fcmTokenService.register(userId, request);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "FCM 토큰 삭제")
+    @DeleteMapping("/fcm-token")
+    public ResponseEntity<Void> deleteFcmToken(
+            @AuthenticationPrincipal Long userId,
+            @Valid @RequestBody UserRequest.DeleteFcmToken request
+    ) {
+        fcmTokenService.delete(userId, request);
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "의견 보내기")

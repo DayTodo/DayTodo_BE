@@ -15,6 +15,17 @@ Elastic Beanstalk EC2 Instance Profile을 포함한 AWS SDK 기본 자격 증명
 반환됩니다. 버킷 정책상 반환된 객체 URL을 클라이언트가 읽을 수 있도록 별도 접근 정책도
 배포 전에 준비해야 합니다.
 
+## Firebase Cloud Messaging 설정
+
+푸시 알림을 실제 발송하려면 `FIREBASE_ENABLED=true`와 `FIREBASE_PROJECT_ID`를 설정하고,
+Firebase 서비스 계정 파일 경로를 `GOOGLE_APPLICATION_CREDENTIALS`로 제공해야 합니다.
+서비스 계정 JSON은 저장소에 커밋하지 않습니다. 설정하지 않은 환경에서도 서버와 테스트는
+시작되지만 푸시 발송은 실패 상태로 기록되고 재시도됩니다.
+
+코스 D-1/D-0 알림은 기본적으로 `Asia/Seoul` 기준 매일 오전 9시에 생성됩니다.
+`NOTIFICATION_ZONE`, `COURSE_REMINDER_CRON`, `NOTIFICATION_DISPATCH_DELAY_MS` 환경변수로
+시간대, 생성 시각, 실패 알림 재시도 주기를 변경할 수 있습니다.
+
 ## 정책 문서
 
 `src/main/resources/policies`의 두 문서는 현재 출시 전 자리표시자입니다. 운영 배포 전에
