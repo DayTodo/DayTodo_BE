@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 import tools.jackson.databind.JsonNode;
@@ -14,6 +15,7 @@ import tools.jackson.databind.ObjectMapper;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.time.Duration;
 
 /** Gemini의 구조화된 출력으로 아직 가격 캐시가 없는 장소들의 1인 가격을 한 번에 추론한다. */
 @Slf4j
@@ -32,9 +34,13 @@ public class GeminiPriceInferenceClient implements AiPriceInferenceClient {
     ) {
         this.objectMapper = objectMapper;
         this.model = model;
+        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+        requestFactory.setConnectTimeout(Duration.ofSeconds(5));
+        requestFactory.setReadTimeout(Duration.ofSeconds(30));
         this.restClient = RestClient.builder()
                 .baseUrl(GEMINI_BASE_URL)
                 .defaultHeader("x-goog-api-key", apiKey)
+                .requestFactory(requestFactory)
                 .build();
     }
 
