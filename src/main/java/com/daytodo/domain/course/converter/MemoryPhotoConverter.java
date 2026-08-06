@@ -1,6 +1,6 @@
 package com.daytodo.domain.course.converter;
 
-import com.daytodo.domain.course.dto.response.CourseResDTO;
+import com.daytodo.domain.course.dto.response.TodayCourseResponse;
 import com.daytodo.domain.course.entity.Course;
 import com.daytodo.domain.course.entity.MemoryPhoto;
 
@@ -30,16 +30,16 @@ public class MemoryPhotoConverter {
                 .toList();
     }
 
-    public static CourseResDTO.SaveMemoryPhotos toSaveMemoryPhotos(List<MemoryPhoto> memoryPhotos) {
-        List<CourseResDTO.SaveMemoryPhotos.PhotoItem> photos = memoryPhotos.stream()
+    public static TodayCourseResponse.SaveMemoryPhotos toSaveMemoryPhotos(List<MemoryPhoto> memoryPhotos) {
+        List<TodayCourseResponse.SaveMemoryPhotos.PhotoItem> photos = memoryPhotos.stream()
                 .map(MemoryPhotoConverter::toPhotoItem)
                 .toList();
 
-        return new CourseResDTO.SaveMemoryPhotos(photos.size(), photos);
+        return new TodayCourseResponse.SaveMemoryPhotos(photos.size(), photos);
     }
 
-    private static CourseResDTO.SaveMemoryPhotos.PhotoItem toPhotoItem(MemoryPhoto memoryPhoto) {
-        return CourseResDTO.SaveMemoryPhotos.PhotoItem.builder()
+    private static TodayCourseResponse.SaveMemoryPhotos.PhotoItem toPhotoItem(MemoryPhoto memoryPhoto) {
+        return TodayCourseResponse.SaveMemoryPhotos.PhotoItem.builder()
                 .memoryPhotoId(memoryPhoto.getId())
                 .imageUrl(memoryPhoto.getImageUrl())
                 .photoOrder(memoryPhoto.getPhotoOrder())

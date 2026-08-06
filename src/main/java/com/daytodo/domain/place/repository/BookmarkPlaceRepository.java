@@ -6,8 +6,15 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface BookmarkPlaceRepository extends JpaRepository<BookmarkPlace, Long> {
+
+    // 저장 중복 검사 (uk_bookmark_place_user_place 와 동일 기준)
+    boolean existsByUser_IdAndPlace_PlaceId(Long userId, Long placeId);
+
+    // 해제 시 소유권 확인
+    Optional<BookmarkPlace> findByIdAndUser_Id(Long id, Long userId);
 
     /*
      * 저장 목록 공통 조회 조건

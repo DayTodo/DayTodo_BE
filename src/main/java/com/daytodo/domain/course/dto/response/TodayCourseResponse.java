@@ -6,7 +6,7 @@ import lombok.Builder;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public class CourseResDTO {
+public class TodayCourseResponse {
 
     // 투데이 코스 조회 (오늘 진행 중인 코스가 없으면 todayCourse 는 null)
     public record GetTodayCourse(
@@ -34,6 +34,12 @@ public class CourseResDTO {
                 String category
         ){}
     }
+
+    // 코스 장소 추가/순서변경 응답: 추가·변경 후 전체 목록을 순서대로 반환
+    // (투데이 조회의 장소 목록과 동일한 형태 재사용: coursePlaceId/placeOrder/placeName/category)
+    public record GetCoursePlaces(
+            List<GetTodayCourse.PlaceItem> places
+    ){}
 
     // 코스 종료
     @Builder

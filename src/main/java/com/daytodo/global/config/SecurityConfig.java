@@ -55,9 +55,6 @@ public class SecurityConfig {
 
     // JWT 전환 대상 외의 기존 Course API 접근 정책은 변경하지 않는다.
     private static final String[] LEGACY_PERMIT_ALL_COURSE_PATHS = {
-            "/courses/today",
-            "/courses/*/complete",
-            "/courses/*/photos",
             "/courses/*/setting",
             "/courses/*/places",
             "/courses/*/members",
@@ -84,6 +81,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/courses/diaries/{diaryId}/course").authenticated()
                         .requestMatchers(HttpMethod.GET, "/courses/diaries").authenticated()
                         .requestMatchers(HttpMethod.GET, "/courses/*/memory-photos").authenticated()
+                        // TodayCourse는 JWT 인증 전환 완료 - LEGACY permitAll 보다 먼저 매칭되어야 함
+                        .requestMatchers(HttpMethod.GET, "/courses/today").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/courses/*/complete").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/courses/*/photos").authenticated()
                         .requestMatchers(HttpMethod.GET, "/users/policies").permitAll()
                         .requestMatchers(HttpMethod.GET,
                                 "/users/profile",
