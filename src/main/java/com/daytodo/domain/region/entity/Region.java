@@ -26,6 +26,13 @@ public class Region {
     @Column (name = "region_level", nullable = false, length = 20)
     private RegionLevel regionLevel;
 
+    // 한국관광공사 KorService2 지역코드 매핑 (미매핑 시 null → 전국 fallback)
+    @Column (name = "area_code")
+    private Integer areaCode;
+
+    @Column (name = "sigungu_code")
+    private Integer sigunguCode;
+
     public Region(Region parent, String regionName, RegionLevel regionLevel) {
         this.parent = parent;
         this.regionName = regionName;

@@ -2,8 +2,8 @@ package com.daytodo.domain.course.service;
 
 import com.daytodo.domain.course.converter.MemoryPhotoConverter;
 import com.daytodo.domain.course.converter.TodayCourseConverter;
-import com.daytodo.domain.course.dto.request.CourseReqDTO;
-import com.daytodo.domain.course.dto.response.CourseResDTO;
+import com.daytodo.domain.course.dto.request.TodayCourseRequest;
+import com.daytodo.domain.course.dto.response.TodayCourseResponse;
 import com.daytodo.domain.course.entity.Course;
 import com.daytodo.domain.course.entity.CourseMember;
 import com.daytodo.domain.course.entity.CoursePlace;
@@ -15,13 +15,18 @@ import com.daytodo.domain.course.repository.CourseMemberRepository;
 import com.daytodo.domain.course.repository.CoursePlaceRepository;
 import com.daytodo.domain.course.repository.CourseRepository;
 import com.daytodo.domain.course.repository.MemoryPhotoRepository;
+import com.daytodo.domain.place.entity.Place;
+import com.daytodo.domain.place.repository.PlaceRepository;
 import com.daytodo.global.apiPayload.exception.ProjectException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -32,13 +37,16 @@ public class TodayCourseService {
     private final CourseMemberRepository courseMemberRepository;
     private final CoursePlaceRepository coursePlaceRepository;
     private final MemoryPhotoRepository memoryPhotoRepository;
+    private final PlaceRepository placeRepository;
+    // 코스 장소 추가 시 추천담기와 공통인 append 로직을 재사용한다.
+    private final CourseService courseService;
 
     /*
      * 투데이 코스 조회
      * 오늘 진행 중인 코스가 없으면 예외가 아니라 todayCourse: null 로 응답한다.
      */
     @Transactional(readOnly = true)
-    public CourseResDTO.GetTodayCourse getTodayCourse(Long userId) {
+    public TodayCourseResponse.GetTodayCourse getTodayCourse(Long userId) {
         Optional<Course> todayCourse = courseRepository.findMemberCoursesByDateAndStatus(
                 userId,
                 LocalDate.now(),
@@ -64,7 +72,7 @@ public class TodayCourseService {
      * 진행 중(IN_PROGRESS)인 코스만 완료 처리할 수 있다.
      */
     @Transactional
-    public CourseResDTO.CompleteCourse completeCourse(Long userId, Long courseId) {
+    public TodayCourseResponse.CompleteCourse completeCourse(Long userId, Long courseId) {
         Course course = getCourseAsMember(userId, courseId);
 
         if (!course.isInProgress()) {
@@ -81,10 +89,10 @@ public class TodayCourseService {
      * diary_id 는 비워둔 채 저장하고, 이후 해당 날짜의 일기가 작성될 때 연결한다.
      */
     @Transactional
-    public CourseResDTO.SaveMemoryPhotos saveMemoryPhotos(
+    public TodayCourseResponse.SaveMemoryPhotos saveMemoryPhotos(
             Long userId,
             Long courseId,
-            CourseReqDTO.SaveMemoryPhotos request
+            TodayCourseRequest.SaveMemoryPhotos request
     ) {
         Course course = getCourseAsMember(userId, courseId);
 
@@ -105,7 +113,7 @@ public class TodayCourseService {
     }
 
     // 공백 URL 은 걸러내고, 저장할 이미지가 하나도 없으면 400 으로 응답한다.
-    private List<String> extractImageUrls(CourseReqDTO.SaveMemoryPhotos request) {
+    private List<String> extractImageUrls(TodayCourseRequest.SaveMemoryPhotos request) {
         if (request == null || request.imageUrls() == null) {
             throw new ProjectException(CourseErrorCode.EMPTY_MEMORY_PHOTO);
         }
@@ -120,6 +128,73 @@ public class TodayCourseService {
         }
 
         return imageUrls;
+    }
+
+    /*
+     * 코스 장소 추가
+     * placeId 로 장소를 코스 맨 뒤에 추가하고, 추가 후 전체 목록을 순서대로 반환한다.
+     */
+    @Transactional
+    public TodayCourseResponse.GetCoursePlaces addPlaceToCourse(
+            Long userId,
+            Long courseId,
+            TodayCourseRequest.AddPlace request
+    ) {
+        if (request == null || request.placeId() == null) {
+            throw new ProjectException(CourseErrorCode.MISSING_PLACE_ID);
+        }
+
+        Course course = getCourseAsMember(userId, courseId);
+
+        Place place = placeRepository.findById(request.placeId())
+                .orElseThrow(() -> new ProjectException(CourseErrorCode.PLACE_NOT_FOUND));
+
+        // 중복확인 + 마지막순서+1 + CoursePlace 생성 (추천담기와 공통)
+        courseService.appendPlaceToCourse(course, place, userId);
+
+        return TodayCourseConverter.toCoursePlaces(coursePlaceRepository.findPlacesByCourseId(courseId));
+    }
+
+    /*
+     * 코스 장소 순서 변경
+     * 전달받은 순서대로 placeOrder 를 갱신하고, 변경된 목록을 순서대로 반환한다.
+     * 순서 충돌을 막기 위해 코스의 전체 장소를 빠짐없이 재배열하는 경우만 허용한다.
+     */
+    @Transactional
+    public TodayCourseResponse.GetCoursePlaces reorderCoursePlaces(
+            Long userId,
+            Long courseId,
+            TodayCourseRequest.ReorderCoursePlaces request
+    ) {
+        List<Long> orderedIds = (request == null) ? null : request.orderedCoursePlaceIds();
+        if (orderedIds == null || orderedIds.isEmpty()
+                || orderedIds.stream().anyMatch(Objects::isNull)
+                || orderedIds.stream().distinct().count() != orderedIds.size()) {
+            throw new ProjectException(CourseErrorCode.INVALID_PLACE_ORDER);
+        }
+
+        getCourseAsMember(userId, courseId);
+
+        List<CoursePlace> coursePlaces = coursePlaceRepository.findByCourse_CourseIdOrderByPlaceOrderAsc(courseId);
+        if (orderedIds.size() != coursePlaces.size()) {
+            throw new ProjectException(CourseErrorCode.INVALID_PLACE_ORDER);
+        }
+
+        Map<Long, CoursePlace> byId = new HashMap<>();
+        for (CoursePlace cp : coursePlaces) {
+            byId.put(cp.getCoursePlaceId(), cp);
+        }
+
+        int order = 1;
+        for (Long coursePlaceId : orderedIds) {
+            CoursePlace target = byId.get(coursePlaceId);
+            if (target == null) {
+                throw new ProjectException(CourseErrorCode.COURSE_PLACE_NOT_FOUND);
+            }
+            target.changeOrder(order++);
+        }
+
+        return TodayCourseConverter.toCoursePlaces(coursePlaceRepository.findPlacesByCourseId(courseId));
     }
 
     private Course getCourseAsMember(Long userId, Long courseId) {
