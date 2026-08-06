@@ -99,8 +99,10 @@ public class SecurityConfig {
                                 "/users/notifications"
                         ).authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/users/me").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/users/fcm-token").authenticated()
                         .requestMatchers(HttpMethod.POST,
                                 "/users/feedback",
+                                "/users/fcm-token",
                                 "/courses",
                                 "/courses/join"
                         ).authenticated()

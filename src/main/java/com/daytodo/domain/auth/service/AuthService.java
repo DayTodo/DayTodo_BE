@@ -14,9 +14,11 @@ import com.daytodo.domain.auth.repository.PasswordResetTokenRepository;
 import com.daytodo.domain.auth.repository.RefreshTokenRepository;
 import com.daytodo.domain.auth.repository.SocialAccountRepository;
 import com.daytodo.domain.user.entity.User;
+import com.daytodo.domain.user.entity.UserNotificationSetting;
 import com.daytodo.domain.user.enums.LoginType;
 import com.daytodo.domain.user.enums.UserStatus;
 import com.daytodo.domain.user.repository.UserRepository;
+import com.daytodo.domain.user.repository.UserNotificationSettingRepository;
 import com.daytodo.global.apiPayload.exception.ProjectException;
 import com.daytodo.global.security.JwtProperties;
 import com.daytodo.global.security.JwtTokenProvider;
@@ -46,6 +48,7 @@ public class AuthService {
     private static final long PASSWORD_RESET_EXPIRY_MINUTES = 10;
 
     private final UserRepository userRepository;
+    private final UserNotificationSettingRepository userNotificationSettingRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final SocialAccountRepository socialAccountRepository;
     private final EmailVerificationTokenRepository emailVerificationTokenRepository;
@@ -88,6 +91,7 @@ public class AuthService {
 
         // 이메일 인증 전까지는 INACTIVE 상태로 두고, 인증 완료 시 ACTIVE로 전환한다.
         user.changeStatus(UserStatus.INACTIVE);
+        userNotificationSettingRepository.save(new UserNotificationSetting(user));
         issueEmailVerificationToken(user);
         return new AuthResponse.SignUp(user.getId(), user.getEmail(), user.getNickname(), user.getCreatedAt());
     }
@@ -298,6 +302,7 @@ public class AuthService {
                 null,
                 LoginType.NAVER
         ));
+        userNotificationSettingRepository.save(new UserNotificationSetting(user));
         socialAccountRepository.save(new SocialAccount(user, SocialProvider.NAVER, profile.response().id()));
         return user;
     }

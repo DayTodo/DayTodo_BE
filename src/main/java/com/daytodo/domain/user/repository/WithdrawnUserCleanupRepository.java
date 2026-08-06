@@ -10,12 +10,13 @@ public class WithdrawnUserCleanupRepository {
     private final EntityManager entityManager;
 
     public void removeUserReferences(Long userId) {
-        delete("delete from RecommendationLike entity where entity.userId = :userId", userId);
-        delete("delete from RecommendationComment entity where entity.userId = :userId", userId);
-        update("update PlaceRecommendation entity set entity.recommenderId = null where entity.recommenderId = :userId", userId);
+        delete("delete from RecommendationLike entity where entity.user.id = :userId", userId);
+        delete("delete from RecommendationComment entity where entity.user.id = :userId", userId);
+        update("update PlaceRecommendation entity set entity.recommender = null where entity.recommender.id = :userId", userId);
 
         delete("delete from BookmarkPlace entity where entity.user.id = :userId", userId);
         delete("delete from SocialAccount entity where entity.user.id = :userId", userId);
+        delete("delete from FcmToken entity where entity.user.id = :userId", userId);
         delete("delete from Notification entity where entity.user.id = :userId", userId);
         delete("delete from UserNotificationSetting entity where entity.user.id = :userId", userId);
         delete("delete from Feedback entity where entity.user.id = :userId", userId);

@@ -1,7 +1,11 @@
 package com.daytodo.domain.user.dto;
 
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+
+import com.daytodo.domain.user.enums.DevicePlatform;
 
 import java.util.List;
 
@@ -17,11 +21,23 @@ public final class UserRequest {
 
     public record UpdateNotificationSettings(
             @NotNull(message = "앱 푸시 알림 설정은 필수입니다.")
-            Boolean pushEnabled,
-            @NotNull(message = "D-1 코스 알림 설정은 필수입니다.")
-            Boolean courseD1Enabled,
-            @NotNull(message = "D-0 코스 알림 설정은 필수입니다.")
-            Boolean courseD0Enabled
+            Boolean pushEnabled
+    ) {
+    }
+
+    public record RegisterFcmToken(
+            @NotBlank(message = "FCM 토큰은 필수입니다.")
+            @Size(max = 512, message = "FCM 토큰은 512자 이하여야 합니다.")
+            String token,
+            @NotNull(message = "기기 플랫폼은 필수입니다.")
+            DevicePlatform platform
+    ) {
+    }
+
+    public record DeleteFcmToken(
+            @NotBlank(message = "FCM 토큰은 필수입니다.")
+            @Size(max = 512, message = "FCM 토큰은 512자 이하여야 합니다.")
+            String token
     ) {
     }
 

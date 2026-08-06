@@ -53,28 +53,23 @@ public class UserNotificationSetting {
             name = "course_d1_enabled",
             nullable = false
     )
-    private boolean courseD1Enabled;
+    private boolean legacyCourseD1Enabled;
 
     @Column(
             name = "course_d0_enabled",
             nullable = false
     )
-    private boolean courseD0Enabled;
+    private boolean legacyCourseD0Enabled;
 
     public UserNotificationSetting(User user) {
         this.user = user;
         this.pushEnabled = true;
-        this.courseD1Enabled = true;
-        this.courseD0Enabled = true;
+        // 기존 DB의 NOT NULL 컬럼과 호환하기 위한 값이다. D-1/D-0는 개별 설정하지 않는다.
+        this.legacyCourseD1Enabled = true;
+        this.legacyCourseD0Enabled = true;
     }
 
-    public void updateSettings(
-            boolean pushEnabled,
-            boolean courseD1Enabled,
-            boolean courseD0Enabled
-    ) {
+    public void updatePushEnabled(boolean pushEnabled) {
         this.pushEnabled = pushEnabled;
-        this.courseD1Enabled = courseD1Enabled;
-        this.courseD0Enabled = courseD0Enabled;
     }
 }

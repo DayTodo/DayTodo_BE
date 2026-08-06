@@ -11,6 +11,7 @@ import com.daytodo.domain.user.service.PolicyService;
 import com.daytodo.domain.user.service.ProfileService;
 import com.daytodo.domain.user.service.UserNotificationService;
 import com.daytodo.domain.user.service.UserService;
+import com.daytodo.domain.user.service.FcmTokenService;
 import com.daytodo.global.security.JwtTokenProvider;
 import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -56,6 +57,7 @@ class TargetApiSecurityTest {
     @MockitoBean UserNotificationService notificationService;
     @MockitoBean FeedbackService feedbackService;
     @MockitoBean PolicyService policyService;
+    @MockitoBean FcmTokenService fcmTokenService;
     @MockitoBean CourseService courseService;
     @MockitoBean CourseAiRecommendationService courseAiRecommendationService;
     @MockitoBean JpaMetamodelMappingContext jpaMetamodelMappingContext;

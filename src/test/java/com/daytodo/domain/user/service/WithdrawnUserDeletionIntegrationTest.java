@@ -13,14 +13,19 @@ import com.daytodo.domain.region.entity.Region;
 import com.daytodo.domain.region.enums.RegionLevel;
 import com.daytodo.domain.region.repository.RegionRepository;
 import com.daytodo.domain.user.entity.User;
+import com.daytodo.domain.user.entity.FcmToken;
+import com.daytodo.domain.user.enums.DevicePlatform;
 import com.daytodo.domain.user.enums.LoginType;
 import com.daytodo.domain.user.repository.UserRepository;
+import com.daytodo.domain.user.repository.FcmTokenRepository;
 import com.daytodo.domain.user.repository.WithdrawnUserCleanupRepository;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -39,7 +44,9 @@ class WithdrawnUserDeletionIntegrationTest {
     @Autowired CourseMemberRepository courseMemberRepository;
     @Autowired InviteCodeRepository inviteCodeRepository;
     @Autowired WithdrawnUserCleanupRepository cleanupRepository;
+    @Autowired FcmTokenRepository fcmTokenRepository;
     @Autowired EntityManager entityManager;
+    @MockitoBean JavaMailSender javaMailSender;
 
     @Test
     void permanentlyDeletesUserWithoutDeletingSharedCourse() {
@@ -58,6 +65,7 @@ class WithdrawnUserDeletionIntegrationTest {
         ));
         courseMemberRepository.save(new CourseMember(course, owner, MemberRole.OWNER, MemberStatus.JOINED));
         courseMemberRepository.save(new CourseMember(course, member, MemberRole.MEMBER, MemberStatus.JOINED));
+        fcmTokenRepository.save(new FcmToken(owner, "owner-token", DevicePlatform.ANDROID));
         inviteCodeRepository.save(new InviteCode(
                 course,
                 owner,
@@ -80,6 +88,7 @@ class WithdrawnUserDeletionIntegrationTest {
 
         assertThat(deleted).isOne();
         assertThat(userRepository.findById(owner.getId())).isEmpty();
+        assertThat(fcmTokenRepository.findByToken("owner-token")).isEmpty();
         Course preserved = courseRepository.findById(course.getCourseId()).orElseThrow();
         assertThat(preserved.getOwner()).isNull();
         assertThat(courseMemberRepository.findByCourseCourseIdAndUserId(course.getCourseId(), member.getId()))

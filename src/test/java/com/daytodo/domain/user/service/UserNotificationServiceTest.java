@@ -37,7 +37,7 @@ class UserNotificationServiceTest {
         UserNotificationService service = new UserNotificationService(userRepository, settingRepository);
         UserResponse.NotificationSettings response = service.getSettings(1L);
 
-        assertThat(response).isEqualTo(new UserResponse.NotificationSettings(true, true, true));
+        assertThat(response).isEqualTo(new UserResponse.NotificationSettings(true));
         verify(settingRepository, never()).save(org.mockito.ArgumentMatchers.any());
     }
 
@@ -51,11 +51,30 @@ class UserNotificationServiceTest {
         UserNotificationService service = new UserNotificationService(userRepository, settingRepository);
         UserResponse.NotificationSettings response = service.updateSettings(
                 1L,
-                new UserRequest.UpdateNotificationSettings(false, true, false)
+                new UserRequest.UpdateNotificationSettings(false)
         );
 
-        assertThat(response).isEqualTo(new UserResponse.NotificationSettings(false, true, false));
+        assertThat(response).isEqualTo(new UserResponse.NotificationSettings(false));
         verify(settingRepository).save(org.mockito.ArgumentMatchers.any(UserNotificationSetting.class));
+    }
+
+    @Test
+    void patchUpdatesMasterPushSetting() {
+        User user = user();
+        UserNotificationSetting setting = new UserNotificationSetting(user);
+        ReflectionTestUtils.setField(setting, "id", 10L);
+        when(userRepository.findActiveUserForUpdate(1L, UserStatus.ACTIVE))
+                .thenReturn(Optional.of(user));
+        when(settingRepository.findByUser_Id(1L)).thenReturn(Optional.of(setting));
+
+        UserNotificationService service = new UserNotificationService(userRepository, settingRepository);
+        UserResponse.NotificationSettings response = service.updateSettings(
+                1L,
+                new UserRequest.UpdateNotificationSettings(false)
+        );
+
+        assertThat(response).isEqualTo(new UserResponse.NotificationSettings(false));
+        verify(settingRepository, never()).save(org.mockito.ArgumentMatchers.any());
     }
 
     private User user() {

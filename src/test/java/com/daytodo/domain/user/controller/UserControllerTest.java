@@ -5,6 +5,7 @@ import com.daytodo.domain.user.service.ProfileService;
 import com.daytodo.domain.user.service.UserNotificationService;
 import com.daytodo.domain.user.service.FeedbackService;
 import com.daytodo.domain.user.service.PolicyService;
+import com.daytodo.domain.user.service.FcmTokenService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -13,11 +14,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.mockito.Mockito.verify;
 
@@ -28,6 +32,7 @@ class UserControllerTest {
     @Mock UserNotificationService notificationService;
     @Mock FeedbackService feedbackService;
     @Mock PolicyService policyService;
+    @Mock FcmTokenService fcmTokenService;
     MockMvc mockMvc;
 
     @BeforeEach
@@ -37,7 +42,8 @@ class UserControllerTest {
                 profileService,
                 notificationService,
                 feedbackService,
-                policyService
+                policyService,
+                fcmTokenService
         ))
                 .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
                 .build();
@@ -56,5 +62,42 @@ class UserControllerTest {
         mockMvc.perform(get("/users/profile"))
                 .andExpect(status().isOk());
         verify(userService).getProfile(1L);
+    }
+
+    @Test
+    void registersFcmTokenUsingAuthenticatedPrincipal() throws Exception {
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(1L, null)
+        );
+
+        mockMvc.perform(post("/users/fcm-token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"token\":\"device-token\",\"platform\":\"ANDROID\"}"))
+                .andExpect(status().isNoContent());
+
+        verify(fcmTokenService).register(
+                1L,
+                new com.daytodo.domain.user.dto.UserRequest.RegisterFcmToken(
+                        "device-token",
+                        com.daytodo.domain.user.enums.DevicePlatform.ANDROID
+                )
+        );
+    }
+
+    @Test
+    void deletesFcmTokenUsingAuthenticatedPrincipal() throws Exception {
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(1L, null)
+        );
+
+        mockMvc.perform(delete("/users/fcm-token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"token\":\"device-token\"}"))
+                .andExpect(status().isNoContent());
+
+        verify(fcmTokenService).delete(
+                1L,
+                new com.daytodo.domain.user.dto.UserRequest.DeleteFcmToken("device-token")
+        );
     }
 }
