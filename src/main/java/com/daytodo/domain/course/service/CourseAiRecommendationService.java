@@ -2,19 +2,15 @@ package com.daytodo.domain.course.service;
 
 import com.daytodo.domain.course.dto.CourseRequest;
 import com.daytodo.domain.course.dto.CourseResponse;
-import com.daytodo.domain.place.entity.Place;
-import com.daytodo.domain.place.entity.PlacePriceEstimate;
 import com.daytodo.domain.place.infra.NaverLocalSearchClient;
 import com.daytodo.domain.place.infra.NaverLocalSearchResponse;
-import com.daytodo.domain.place.repository.PlacePriceEstimateRepository;
-import com.daytodo.domain.place.repository.PlaceRepository;
 import com.daytodo.domain.region.entity.Region;
 import com.daytodo.domain.region.exception.code.RegionErrorCode;
 import com.daytodo.domain.region.repository.RegionRepository;
 import com.daytodo.global.apiPayload.exception.ProjectException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.util.HtmlUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -28,7 +24,6 @@ import java.util.stream.IntStream;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class CourseAiRecommendationService {
     private static final String NO_PLACES_MESSAGE = "해당 조건의 장소가 없습니다.";
     private static final String SUCCESS_MESSAGE = "성공적으로 요청을 처리했습니다.";
@@ -36,79 +31,76 @@ public class CourseAiRecommendationService {
     private static final List<String> COURSE_TYPES = List.of("식당", "카페", "놀거리");
 
     private final RegionRepository regionRepository;
-    private final PlaceRepository placeRepository;
-    private final PlacePriceEstimateRepository placePriceEstimateRepository;
+    private final CourseAiRecommendationPersistenceService persistenceService;
     private final NaverLocalSearchClient naverLocalSearchClient;
     private final AiPriceInferenceClient aiPriceInferenceClient;
 
-    @Transactional
     public CourseResponse.AiRecommendations recommend(CourseRequest.AiRecommendation request) {
         Region region = regionRepository.findById(request.regionId())
                 .orElseThrow(() -> new ProjectException(RegionErrorCode.REGION_NOT_FOUND));
 
-        List<Candidate> candidates = searchCandidates(region);
-        List<Candidate> pricedCandidates = saveMissingPriceEstimates(candidates);
+        // Naver/Gemini 원격 호출은 트랜잭션 밖에서 수행한다.
+        List<AiCourseCandidate> discoveredCandidates = searchCandidates(region.getRegionName());
+        List<AiCourseCandidate> candidates = persistenceService.resolveCandidates(region.getRegionId(), discoveredCandidates);
+        if (candidates.isEmpty()) return emptyResponse();
+        Map<String, AiPriceInferenceClient.PriceEstimate> inferred = aiPriceInferenceClient.estimate(toPriceInputs(candidates));
+        List<AiCourseCandidate> pricedCandidates = persistenceService.savePriceEstimates(candidates, inferred);
+
         List<CourseResponse.AiRecommendationCourse> courses = combine(
                 region.getRegionName(), pricedCandidates, request.minPrice(), request.maxPrice());
-        return new CourseResponse.AiRecommendations(true, SUCCESS_CODE,
-                courses.isEmpty() ? NO_PLACES_MESSAGE : SUCCESS_MESSAGE, courses);
+        return courses.isEmpty() ? emptyResponse() : new CourseResponse.AiRecommendations(true, SUCCESS_CODE, SUCCESS_MESSAGE, courses);
     }
 
-    private List<Candidate> searchCandidates(Region region) {
-        List<Candidate> candidates = new ArrayList<>();
+    private CourseResponse.AiRecommendations emptyResponse() {
+        return new CourseResponse.AiRecommendations(true, SUCCESS_CODE, NO_PLACES_MESSAGE, List.of());
+    }
+
+    private List<AiCourseCandidate> searchCandidates(String regionName) {
+        List<AiCourseCandidate> candidates = new ArrayList<>();
         for (String type : COURSE_TYPES) {
-            NaverLocalSearchResponse response = naverLocalSearchClient.search(region.getRegionName() + " " + type);
+            NaverLocalSearchResponse response = naverLocalSearchClient.search(regionName + " " + type);
             if (response == null || response.items() == null) continue;
             IntStream.range(0, response.items().size())
-                    .mapToObj(index -> toCandidate(region, type, index, response.items().get(index)))
+                    .mapToObj(index -> toCandidate(type, index, response.items().get(index)))
+                    .flatMap(Optional::stream)
                     .forEach(candidates::add);
         }
         return candidates;
     }
 
-    private Candidate toCandidate(Region region, String type, int index, NaverLocalSearchResponse.Item item) {
-        String externalId = externalId(item);
-        Place place = placeRepository.findByNaverPlaceId(externalId)
-                .orElseGet(() -> placeRepository.save(new Place(region, externalId, clean(item.title()), category(item.category()),
-                        requiredText(item.address()), emptyToNull(item.roadAddress()), coordinate(item.mapy()), coordinate(item.mapx()),
-                        emptyToNull(item.telephone()), emptyToNull(clean(item.description())), null)));
-        return new Candidate(type + "-" + index, type, place, item, placePriceEstimateRepository.findByPlace(place));
+    private Optional<AiCourseCandidate> toCandidate(String type, int index, NaverLocalSearchResponse.Item item) {
+        Double latitude = coordinate(item.mapy());
+        Double longitude = coordinate(item.mapx());
+        if (latitude == null || longitude == null) return Optional.empty();
+        return Optional.of(AiCourseCandidate.discovered(type + "-" + index, type, externalId(item), clean(item.title()),
+                category(item.category()), requiredText(item.address()), emptyToNull(item.roadAddress()), latitude, longitude,
+                emptyToNull(item.telephone()), emptyToNull(clean(item.description()))));
     }
 
-    private List<Candidate> saveMissingPriceEstimates(List<Candidate> candidates) {
-        List<AiPriceInferenceClient.PlaceInput> inputs = candidates.stream()
-                .filter(candidate -> candidate.priceEstimate().isEmpty())
-                .map(candidate -> new AiPriceInferenceClient.PlaceInput(candidate.key(), candidate.type(), candidate.place().getPlaceName(),
-                        candidate.place().getCategory(), candidate.item().description()))
-                .toList();
-        Map<String, AiPriceInferenceClient.PriceEstimate> inferred = aiPriceInferenceClient.estimate(inputs);
+    private List<AiPriceInferenceClient.PlaceInput> toPriceInputs(List<AiCourseCandidate> candidates) {
         return candidates.stream()
-                .map(candidate -> candidate.priceEstimate().<Candidate>map(price -> candidate)
-                        .orElseGet(() -> saveEstimatedCandidate(candidate, inferred.get(candidate.key()))))
-                .filter(java.util.Objects::nonNull)
+                .filter(candidate -> candidate.priceEstimate().isEmpty())
+                .collect(java.util.stream.Collectors.toMap(candidate -> candidate.place().getPlaceId(), candidate -> candidate,
+                        (left, right) -> left, java.util.LinkedHashMap::new))
+                .values().stream()
+                .map(candidate -> new AiPriceInferenceClient.PlaceInput(candidate.key(), candidate.type(), candidate.place().getPlaceName(),
+                        candidate.place().getCategory(), candidate.description()))
                 .toList();
-    }
-
-    private Candidate saveEstimatedCandidate(Candidate candidate, AiPriceInferenceClient.PriceEstimate estimate) {
-        if (estimate == null) return null;
-        PlacePriceEstimate saved = placePriceEstimateRepository.save(new PlacePriceEstimate(candidate.place(), estimate.minPrice(),
-                estimate.maxPrice(), estimate.confidence(), estimate.reason()));
-        return candidate.withPriceEstimate(saved);
     }
 
     private List<CourseResponse.AiRecommendationCourse> combine(
-            String regionName, List<Candidate> candidates, int minBudget, int maxBudget) {
-        List<Candidate> restaurants = byType(candidates, "식당");
-        List<Candidate> cafes = byType(candidates, "카페");
-        List<Candidate> activities = byType(candidates, "놀거리");
-        List<List<Candidate>> valid = new ArrayList<>();
-        for (Candidate restaurant : restaurants) for (Candidate cafe : cafes) for (Candidate activity : activities) {
-            List<Candidate> course = List.of(restaurant, cafe, activity);
+            String regionName, List<AiCourseCandidate> candidates, int minBudget, int maxBudget) {
+        List<AiCourseCandidate> restaurants = byType(candidates, "식당");
+        List<AiCourseCandidate> cafes = byType(candidates, "카페");
+        List<AiCourseCandidate> activities = byType(candidates, "놀거리");
+        List<List<AiCourseCandidate>> valid = new ArrayList<>();
+        for (AiCourseCandidate restaurant : restaurants) for (AiCourseCandidate cafe : cafes) for (AiCourseCandidate activity : activities) {
+            List<AiCourseCandidate> course = List.of(restaurant, cafe, activity);
             int totalMin = course.stream().mapToInt(candidate -> candidate.priceEstimate().orElseThrow().getMinPrice()).sum();
             int totalMax = course.stream().mapToInt(candidate -> candidate.priceEstimate().orElseThrow().getMaxPrice()).sum();
             if (totalMin >= minBudget && totalMax <= maxBudget) valid.add(course);
         }
-        List<List<Candidate>> selected = valid.stream()
+        List<List<AiCourseCandidate>> selected = valid.stream()
                 .sorted(Comparator.comparingInt(course -> course.stream().mapToInt(c -> c.priceEstimate().orElseThrow().getMaxPrice()).sum()))
                 .limit(2).toList();
         return IntStream.range(0, selected.size())
@@ -116,11 +108,11 @@ public class CourseAiRecommendationService {
                 .toList();
     }
 
-    private List<Candidate> byType(List<Candidate> candidates, String type) {
+    private List<AiCourseCandidate> byType(List<AiCourseCandidate> candidates, String type) {
         return candidates.stream().filter(candidate -> candidate.type().equals(type)).toList();
     }
 
-    private CourseResponse.AiRecommendationCourse toCourse(String regionName, int courseNumber, List<Candidate> candidates) {
+    private CourseResponse.AiRecommendationCourse toCourse(String regionName, int courseNumber, List<AiCourseCandidate> candidates) {
         int totalMin = candidates.stream().mapToInt(candidate -> candidate.priceEstimate().orElseThrow().getMinPrice()).sum();
         int totalMax = candidates.stream().mapToInt(candidate -> candidate.priceEstimate().orElseThrow().getMaxPrice()).sum();
         List<CourseResponse.AiRecommendationPlace> places = IntStream.range(0, candidates.size())
@@ -128,9 +120,9 @@ public class CourseAiRecommendationService {
         return new CourseResponse.AiRecommendationCourse(regionName + " AI 추천 코스 " + courseNumber, totalMin, totalMax, places);
     }
 
-    private CourseResponse.AiRecommendationPlace toPlace(int order, Candidate candidate) {
-        Place place = candidate.place();
-        PlacePriceEstimate estimate = candidate.priceEstimate().orElseThrow();
+    private CourseResponse.AiRecommendationPlace toPlace(int order, AiCourseCandidate candidate) {
+        var place = candidate.place();
+        var estimate = candidate.priceEstimate().orElseThrow();
         return new CourseResponse.AiRecommendationPlace(order, place.getPlaceId(), place.getNaverPlaceId(), place.getPlaceName(),
                 place.getCategory(), place.getAddress(), place.getRoadAddress(), place.getLatitude(), place.getLongitude(),
                 place.getDescription(), place.getImageUrl(), estimate.getMinPrice(), estimate.getMaxPrice(), estimate.getConfidence(), estimate.getReason());
@@ -144,19 +136,12 @@ public class CourseAiRecommendationService {
         try { return java.util.HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8))); }
         catch (NoSuchAlgorithmException exception) { throw new IllegalStateException(exception); }
     }
-    private String clean(String value) { return value == null ? "" : value.replaceAll("<[^>]*>", ""); }
-    private String category(String value) { return value == null || value.isBlank() ? "기타" : value.replace(">", " > "); }
+    private String clean(String value) { return value == null ? "" : HtmlUtils.htmlUnescape(value.replaceAll("<[^>]*>", "")); }
+    private String category(String value) { return value == null || value.isBlank() ? "기타" : clean(value).replace(">", " > "); }
     private String requiredText(String value) { return value == null ? "" : value; }
     private String emptyToNull(String value) { return value == null || value.isBlank() ? null : value; }
-    private double coordinate(String value) {
-        try { return value == null || value.isBlank() ? 0 : Double.parseDouble(value) / 10_000_000; }
-        catch (NumberFormatException exception) { return 0; }
-    }
-
-    private record Candidate(String key, String type, Place place, NaverLocalSearchResponse.Item item,
-                             Optional<PlacePriceEstimate> priceEstimate) {
-        private Candidate withPriceEstimate(PlacePriceEstimate estimate) {
-            return new Candidate(key, type, place, item, Optional.of(estimate));
-        }
+    private Double coordinate(String value) {
+        try { return value == null || value.isBlank() ? null : Double.parseDouble(value) / 10_000_000; }
+        catch (NumberFormatException exception) { return null; }
     }
 }

@@ -6,12 +6,9 @@ import com.daytodo.domain.place.entity.Place;
 import com.daytodo.domain.place.entity.PlacePriceEstimate;
 import com.daytodo.domain.place.infra.NaverLocalSearchClient;
 import com.daytodo.domain.place.infra.NaverLocalSearchResponse;
-import com.daytodo.domain.place.repository.PlacePriceEstimateRepository;
-import com.daytodo.domain.place.repository.PlaceRepository;
 import com.daytodo.domain.region.entity.Region;
 import com.daytodo.domain.region.enums.RegionLevel;
 import com.daytodo.domain.region.repository.RegionRepository;
-import com.daytodo.domain.user.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,8 +28,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class CourseAiRecommendationServiceTest {
     @Mock RegionRepository regionRepository;
-    @Mock PlaceRepository placeRepository;
-    @Mock PlacePriceEstimateRepository placePriceEstimateRepository;
+    @Mock CourseAiRecommendationPersistenceService persistenceService;
     @Mock NaverLocalSearchClient naverLocalSearchClient;
     @Mock AiPriceInferenceClient aiPriceInferenceClient;
 
@@ -41,8 +37,8 @@ class CourseAiRecommendationServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new CourseAiRecommendationService(regionRepository, placeRepository,
-                placePriceEstimateRepository, naverLocalSearchClient, aiPriceInferenceClient);
+        service = new CourseAiRecommendationService(regionRepository, persistenceService,
+                naverLocalSearchClient, aiPriceInferenceClient);
         hongdae = new Region(null, "홍대", RegionLevel.SIGUNGU);
         ReflectionTestUtils.setField(hongdae, "regionId", 1L);
         when(regionRepository.findById(1L)).thenReturn(Optional.of(hongdae));
@@ -56,15 +52,28 @@ class CourseAiRecommendationServiceTest {
         when(naverLocalSearchClient.search("홍대 식당")).thenReturn(response("식당", "restaurant-link"));
         when(naverLocalSearchClient.search("홍대 카페")).thenReturn(response("카페", "cafe-link"));
         when(naverLocalSearchClient.search("홍대 놀거리")).thenReturn(response("놀거리", "activity-link"));
-        when(placeRepository.findByNaverPlaceId(anyString()))
-                .thenReturn(Optional.of(restaurant), Optional.of(cafe), Optional.of(activity));
-        when(placePriceEstimateRepository.findByPlace(any())).thenReturn(Optional.empty());
+        when(persistenceService.resolveCandidates(any(), any())).thenAnswer(invocation -> {
+            List<AiCourseCandidate> discovered = invocation.getArgument(1);
+            return discovered.stream().map(candidate -> switch (candidate.type()) {
+                case "식당" -> candidate.withPlace(restaurant, Optional.empty());
+                case "카페" -> candidate.withPlace(cafe, Optional.empty());
+                default -> candidate.withPlace(activity, Optional.empty());
+            }).toList();
+        });
         when(aiPriceInferenceClient.estimate(any())).thenReturn(Map.of(
                 "식당-0", new AiPriceInferenceClient.PriceEstimate(12_000, 15_000, .8, "식사 가격"),
                 "카페-0", new AiPriceInferenceClient.PriceEstimate(5_000, 7_000, .8, "음료 가격"),
                 "놀거리-0", new AiPriceInferenceClient.PriceEstimate(8_000, 9_000, .8, "이용 가격")
         ));
-        when(placePriceEstimateRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(persistenceService.savePriceEstimates(any(), any())).thenAnswer(invocation -> {
+            List<AiCourseCandidate> candidates = invocation.getArgument(0);
+            Map<String, AiPriceInferenceClient.PriceEstimate> estimates = invocation.getArgument(1);
+            return candidates.stream().map(candidate -> {
+                AiPriceInferenceClient.PriceEstimate estimate = estimates.get(candidate.key());
+                return candidate.withPriceEstimate(new PlacePriceEstimate(candidate.place(), estimate.minPrice(), estimate.maxPrice(),
+                        estimate.confidence(), estimate.reason()));
+            }).toList();
+        });
 
         CourseResponse.AiRecommendations result = service.recommend(
                 new CourseRequest.AiRecommendation(1L, 25_000, 35_000));
@@ -81,7 +90,6 @@ class CourseAiRecommendationServiceTest {
     @Test
     void returnsEmptyListWhenNoCombinationMatchesBudget() {
         when(naverLocalSearchClient.search(anyString())).thenReturn(new NaverLocalSearchResponse(0, 0, 0, List.of()));
-        when(aiPriceInferenceClient.estimate(List.of())).thenReturn(Map.of());
 
         CourseResponse.AiRecommendations result = service.recommend(
                 new CourseRequest.AiRecommendation(1L, 10_000, 30_000));
