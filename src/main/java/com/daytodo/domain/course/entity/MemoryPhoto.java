@@ -9,10 +9,12 @@ import lombok.NoArgsConstructor;
 /**
  * 코스의 추억 사진
  *
- * TODO(팀 확인 필요): PR #21(auth-diary-api)에도 같은 이름의 엔티티가 있습니다.
- * 그쪽은 diary_id 가 NOT NULL 이지만, ERD와 TDY-008 명세는
- * "사진 저장 시점에는 diary_id 를 비워두고 이후 일기 작성 시 연결"이므로 nullable 로 두었습니다.
- * ERD에 created_at 이 없어 BaseCreatedEntity 도 상속하지 않았습니다.
+ * 추억 사진은 코스 멤버 전원이 함께 보는 공용 사진이라(피그마 '기록' 화면에서 여러 멤버가
+ * 같은 사진에 메모를 남기는 것으로 확인), course 단위로만 조회하고 diary와는 연관관계를
+ * 맺지 않는다. 예전엔 diary_id로 "몇 번째 일기 작성 시점에 확정된 사진인지" 연결하려 했지만,
+ * 일기를 먼저 쓴 뒤에 사진이 추가되는 순서도 API상 가능해서 diary_id가 영영 비어있는 사진이
+ * 생길 수 있었다(PR #49 리뷰, 준열님 코멘트). 조회가 어차피 course 기준이라 diary_id는
+ * 실질적으로 쓰이지 않았으므로, 그 원인 자체를 없애기 위해 연관관계를 제거했다.
  */
 @Entity
 @Table(
@@ -38,11 +40,6 @@ public class MemoryPhoto {
     @JoinColumn(name = "course_id", nullable = false)
     private Course course;
 
-    // 사진 저장 시점에는 비워두고, 해당 날짜의 일기가 작성될 때 연결
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "diary_id")
-    private Diary diary;
-
     @Column(name = "image_url", length = 500, nullable = false)
     private String imageUrl;
 
@@ -54,10 +51,5 @@ public class MemoryPhoto {
         this.course = course;
         this.imageUrl = imageUrl;
         this.photoOrder = photoOrder;
-    }
-
-    // 일기 작성 시 해당 일기에 연결
-    public void linkDiary(Diary diary) {
-        this.diary = diary;
     }
 }

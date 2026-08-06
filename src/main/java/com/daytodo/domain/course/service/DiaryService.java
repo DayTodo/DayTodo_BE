@@ -7,8 +7,10 @@ import com.daytodo.domain.course.entity.CoursePlace;
 import com.daytodo.domain.course.entity.Diary;
 import com.daytodo.domain.course.entity.MemoryPhoto;
 import com.daytodo.domain.course.enums.CourseStatus;
+import com.daytodo.domain.course.enums.MemberStatus;
 import com.daytodo.domain.course.exception.code.CourseErrorCode;
 import com.daytodo.domain.course.exception.code.DiaryErrorCode;
+import com.daytodo.domain.course.repository.CourseMemberRepository;
 import com.daytodo.domain.course.repository.CoursePlaceRepository;
 import com.daytodo.domain.course.repository.CourseRepository;
 import com.daytodo.domain.course.repository.DiaryRepository;
@@ -42,6 +44,7 @@ public class DiaryService {
     private final CoursePlaceRepository coursePlaceRepository;
     private final PlaceRepository placeRepository;
     private final UserRepository userRepository;
+    private final CourseMemberRepository courseMemberRepository;
 
     @Transactional
     public DiaryResponse.Write writeDiary(Long userId, DiaryRequest.Write request) {
@@ -86,8 +89,12 @@ public class DiaryService {
 
     public DiaryResponse.Photos getPhotosByCourse(Long userId, Long courseId) {
         getActiveUser(userId);
+        // 추억 사진은 코스 멤버 전원이 함께 보는 공용 사진이라(피그마 '기록' 화면에서
+        // 여러 멤버가 같은 사진에 메모를 남기는 것으로 확인), 요청자가 그 코스의 멤버인지만
+        // 확인하고 course 단위로 사진을 조회한다. 특정 멤버의 diary에 연결됐는지는 보지 않는다.
+        requireCourseMember(userId, courseId);
         List<MemoryPhoto> photos = memoryPhotoRepository
-                .findAllByDiary_Course_CourseIdAndDiary_User_IdOrderByPhotoOrderAsc(courseId, userId);
+                .findAllByCourse_CourseIdOrderByPhotoOrderAsc(courseId);
         return new DiaryResponse.Photos(courseId, toPhotoResponses(photos));
     }
 
@@ -99,7 +106,14 @@ public class DiaryService {
         Diary diary = diaries.stream()
                 .max(Comparator.comparing(Diary::getCreatedAt))
                 .orElseThrow(() -> new ProjectException(DiaryErrorCode.DIARY_NOT_FOUND));
-        List<MemoryPhoto> photos = memoryPhotoRepository.findAllByDiary_IdOrderByPhotoOrderAsc(diary.getId());
+
+        // diary는 유저가 나중에 코스를 나가도(LEFT) 그대로 남아있으므로, 공용 사진을
+        // 반환하기 전에 지금도 그 코스의 JOINED 멤버인지 다시 확인한다.
+        requireCourseMember(userId, diary.getCourse().getCourseId());
+
+        // 사진은 diary가 아닌 course 공용이므로, 이 diary가 속한 코스 기준으로 조회한다.
+        List<MemoryPhoto> photos = memoryPhotoRepository
+                .findAllByCourse_CourseIdOrderByPhotoOrderAsc(diary.getCourse().getCourseId());
 
         return new DiaryResponse.MemoryByDate(
                 diary.getId(),
@@ -155,6 +169,14 @@ public class DiaryService {
         return photos.stream()
                 .map(photo -> new DiaryResponse.Photo(photo.getId(), photo.getImageUrl(), photo.getPhotoOrder()))
                 .toList();
+    }
+
+    private void requireCourseMember(Long userId, Long courseId) {
+        boolean isMember = courseMemberRepository
+                .existsByCourseCourseIdAndUserIdAndMemberStatus(courseId, userId, MemberStatus.JOINED);
+        if (!isMember) {
+            throw new ProjectException(CourseErrorCode.COURSE_ACCESS_DENIED);
+        }
     }
 
     private User getActiveUser(Long userId) {
