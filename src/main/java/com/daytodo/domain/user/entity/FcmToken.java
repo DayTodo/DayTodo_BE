@@ -44,9 +44,4 @@ public class FcmToken extends BaseEntity {
         this.token = token;
         this.platform = platform;
     }
-
-    public void registerFor(User user, DevicePlatform platform) {
-        this.user = user;
-        this.platform = platform;
-    }
 }
