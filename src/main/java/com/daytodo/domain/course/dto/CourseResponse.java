@@ -77,6 +77,47 @@ public final class CourseResponse {
     public record Joined(Long courseId, String courseName) {
     }
 
+    public record AiRecommendations(
+            boolean success,
+            String code,
+            String message,
+            List<AiRecommendationCourse> result
+    ) {
+        public AiRecommendations {
+            result = List.copyOf(result);
+        }
+    }
+
+    public record AiRecommendationCourse(
+            String courseName,
+            int estimatedTotalMinPrice,
+            int estimatedTotalMaxPrice,
+            List<AiRecommendationPlace> places
+    ) {
+        public AiRecommendationCourse {
+            places = List.copyOf(places);
+        }
+    }
+
+    public record AiRecommendationPlace(
+            int recommendationOrder,
+            Long placeId,
+            String naverPlaceId,
+            String placeName,
+            String category,
+            String address,
+            String roadAddress,
+            double latitude,
+            double longitude,
+            String description,
+            String imageUrl,
+            int minPrice,
+            int maxPrice,
+            double priceConfidence,
+            String priceReason
+    ) {
+    }
+
 // ==============================================================================
 
     public record Setting(

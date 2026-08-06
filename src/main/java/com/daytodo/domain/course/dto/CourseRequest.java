@@ -44,6 +44,19 @@ public final class CourseRequest {
     ) {
     }
 
+    public record AiRecommendation(
+            @NotNull(message = "지역은 필수입니다.") Long regionId,
+            @NotNull(message = "최소 금액은 필수입니다.")
+            @PositiveOrZero(message = "최소 금액은 0 이상이어야 합니다.") Integer minPrice,
+            @NotNull(message = "최대 금액은 필수입니다.")
+            @PositiveOrZero(message = "최대 금액은 0 이상이어야 합니다.") Integer maxPrice
+    ) {
+        @AssertTrue(message = "최대 금액은 최소 금액보다 작을 수 없습니다.")
+        public boolean isValidPriceRange() {
+            return minPrice == null || maxPrice == null || maxPrice >= minPrice;
+        }
+    }
+
     // ==============================================================================
 
     public record Setting(

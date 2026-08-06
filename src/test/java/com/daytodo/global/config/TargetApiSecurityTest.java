@@ -3,6 +3,7 @@ package com.daytodo.global.config;
 import com.daytodo.domain.course.controller.CourseController;
 import com.daytodo.domain.course.dto.CourseResponse;
 import com.daytodo.domain.course.service.CourseService;
+import com.daytodo.domain.course.service.CourseAiRecommendationService;
 import com.daytodo.domain.user.controller.UserController;
 import com.daytodo.domain.user.dto.UserResponse;
 import com.daytodo.domain.user.service.FeedbackService;
@@ -56,6 +57,7 @@ class TargetApiSecurityTest {
     @MockitoBean FeedbackService feedbackService;
     @MockitoBean PolicyService policyService;
     @MockitoBean CourseService courseService;
+    @MockitoBean CourseAiRecommendationService courseAiRecommendationService;
     @MockitoBean JpaMetamodelMappingContext jpaMetamodelMappingContext;
 
     @Test
@@ -85,6 +87,15 @@ class TargetApiSecurityTest {
                         .contentType("application/json")
                         .content("{}"))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void aiRecommendationApiRejectsRequestWithoutJwt() throws Exception {
+        mockMvc.perform(post("/courses/ai-recommendations")
+                        .contentType("application/json")
+                        .content("{\"regionId\":1,\"minPrice\":10000,\"maxPrice\":30000}"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"));
     }
 
     @Test

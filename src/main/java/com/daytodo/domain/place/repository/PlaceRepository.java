@@ -12,4 +12,5 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
 
     // 북마크 lazy upsert 용: 관광 콘텐츠 ID 로 기존 Place 조회
     Optional<Place> findByTourContentId(String tourContentId);
+    Optional<Place> findByNaverPlaceId(String naverPlaceId);
 }

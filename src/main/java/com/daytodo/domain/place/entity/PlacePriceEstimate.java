@@ -39,4 +39,15 @@ public class PlacePriceEstimate {
     // 추론 근거
     @Column (name = "reason", length = 500)
     private String reason;
+
+    public PlacePriceEstimate(Place place, int minPrice, int maxPrice, double confidence, String reason) {
+        if (maxPrice < minPrice) {
+            throw new IllegalArgumentException("최대 가격은 최소 가격보다 작을 수 없습니다.");
+        }
+        this.place = place;
+        this.minPrice = minPrice;
+        this.maxPrice = maxPrice;
+        this.confidence = confidence;
+        this.reason = reason;
+    }
 }

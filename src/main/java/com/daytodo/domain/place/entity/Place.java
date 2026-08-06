@@ -82,4 +82,20 @@ public class Place extends BaseEntity {
         place.imageUrl = imageUrl;
         return place;
     }
+  
+    public Place(Region region, String naverPlaceId, String placeName, String category,
+                 String address, String roadAddress, double latitude, double longitude,
+                 String phone, String description, String imageUrl) {
+        this.region = region;
+        this.naverPlaceId = naverPlaceId;
+        this.placeName = placeName;
+        this.category = category;
+        this.address = address;
+        this.roadAddress = roadAddress;
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.phone = phone;
+        this.description = description;
+        this.imageUrl = imageUrl;
+    }
 }
