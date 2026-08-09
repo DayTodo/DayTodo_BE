@@ -41,10 +41,13 @@ public class PlaceResDTO {
     ){
         @Builder
         public record PlaceItem(
+                Long placeId,        // 내부 place 테이블 PK. 투데이/코스 장소 추가 시 이 값을 사용한다.
                 String placeName,
                 String category,
                 String regionName,
-                String description
+                String description,
+                double latitude,
+                double longitude
                 ){}
     }
 }
