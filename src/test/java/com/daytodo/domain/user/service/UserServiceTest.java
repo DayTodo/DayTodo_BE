@@ -150,7 +150,7 @@ class UserServiceTest {
     @Test
     void changesPasswordWhenCurrentPasswordMatches() {
         User user = user(1L, UserStatus.ACTIVE);
-        when(userRepository.findByIdAndUserStatus(1L, UserStatus.ACTIVE)).thenReturn(Optional.of(user));
+        when(userRepository.findActiveUserForUpdate(1L, UserStatus.ACTIVE)).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("current1234", "password")).thenReturn(true);
         when(passwordEncoder.encode("newPassword1234")).thenReturn("encodedNewPassword");
 
@@ -162,7 +162,7 @@ class UserServiceTest {
     @Test
     void rejectsPasswordChangeWhenCurrentPasswordDoesNotMatch() {
         User user = user(1L, UserStatus.ACTIVE);
-        when(userRepository.findByIdAndUserStatus(1L, UserStatus.ACTIVE)).thenReturn(Optional.of(user));
+        when(userRepository.findActiveUserForUpdate(1L, UserStatus.ACTIVE)).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("wrongPassword", "password")).thenReturn(false);
 
         assertThatThrownBy(() -> userService.changePassword(
@@ -177,7 +177,7 @@ class UserServiceTest {
     void rejectsPasswordChangeForSocialOnlyAccount() {
         User user = new User("user@example.com", null, "daytodo", null, LoginType.NAVER);
         ReflectionTestUtils.setField(user, "id", 1L);
-        when(userRepository.findByIdAndUserStatus(1L, UserStatus.ACTIVE)).thenReturn(Optional.of(user));
+        when(userRepository.findActiveUserForUpdate(1L, UserStatus.ACTIVE)).thenReturn(Optional.of(user));
 
         assertThatThrownBy(() -> userService.changePassword(
                 1L, new UserRequest.ChangePassword("current1234", "newPassword1234")
@@ -185,6 +185,18 @@ class UserServiceTest {
                 .isInstanceOf(ProjectException.class)
                 .extracting("errorCode")
                 .isEqualTo(UserErrorCode.SOCIAL_ACCOUNT_PASSWORD_CHANGE_NOT_ALLOWED);
+    }
+
+    @Test
+    void rejectsPasswordChangeWhenUserNotFound() {
+        when(userRepository.findActiveUserForUpdate(1L, UserStatus.ACTIVE)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userService.changePassword(
+                1L, new UserRequest.ChangePassword("current1234", "newPassword1234")
+        ))
+                .isInstanceOf(ProjectException.class)
+                .extracting("errorCode")
+                .isEqualTo(UserErrorCode.USER_NOT_FOUND);
     }
 
     private User user(Long id, UserStatus status) {
