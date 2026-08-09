@@ -29,6 +29,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PlaceBookmarkService {
 
+    private static final String BOOKMARK_UNIQUE_CONSTRAINT = "uk_bookmark_place_user_place";
+
     private final BookmarkPlaceRepository bookmarkPlaceRepository;
     private final PlaceRepository placeRepository;
     private final RegionRepository regionRepository;
@@ -119,12 +121,20 @@ public class PlaceBookmarkService {
     /**
      * DataIntegrityViolationException 이 북마크 user-place 유니크 제약
      * (uk_bookmark_place_user_place) 위반으로 발생한 것인지 확인한다.
+     * MySQL은 제약조건명을 "테이블명.제약조건명" 형태로 반환할 수 있어 endsWith 로 정규화해 비교한다.
      * FK 위반 등 다른 원인은 이 조건에 해당하지 않아 상위로 그대로 전파된다.
      */
     private boolean isDuplicateBookmarkConstraintViolation(DataIntegrityViolationException e) {
         Throwable cause = e.getCause();
-        return cause instanceof ConstraintViolationException cve
-                && "uk_bookmark_place_user_place".equals(cve.getConstraintName());
+        if (!(cause instanceof ConstraintViolationException cve)) {
+            return false;
+        }
+        String constraintName = cve.getConstraintName();
+        if (constraintName == null) {
+            return false;
+        }
+        return constraintName.equals(BOOKMARK_UNIQUE_CONSTRAINT)
+                || constraintName.endsWith("." + BOOKMARK_UNIQUE_CONSTRAINT);
     }
 
     /**
