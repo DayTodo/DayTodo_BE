@@ -1,5 +1,7 @@
 package com.daytodo.domain.user.service;
 
+import com.daytodo.domain.auth.repository.PasswordResetTokenRepository;
+import com.daytodo.domain.auth.repository.RefreshTokenRepository;
 import com.daytodo.domain.region.entity.Region;
 import com.daytodo.domain.region.exception.code.RegionErrorCode;
 import com.daytodo.domain.region.repository.RegionRepository;
@@ -33,6 +35,8 @@ public class UserService {
     private final UserInterestRegionRepository interestRegionRepository;
     private final RegionRepository regionRepository;
     private final PasswordEncoder passwordEncoder;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final Clock clock;
 
     public UserResponse.Profile getProfile(Long userId) {
@@ -100,6 +104,10 @@ public class UserService {
             throw new ProjectException(UserErrorCode.INVALID_CURRENT_PASSWORD);
         }
         user.changePassword(passwordEncoder.encode(request.newPassword()));
+        // 비밀번호 변경 시 기존에 발급된 refresh token(탈취 가능성 있는 세션)과
+        // 대기 중이던 비밀번호 재설정 코드를 함께 무효화한다.
+        refreshTokenRepository.findById(userId).ifPresent(refreshTokenRepository::delete);
+        passwordResetTokenRepository.findById(userId).ifPresent(passwordResetTokenRepository::delete);
     }
 
     public User getActiveUser(Long userId) {

@@ -1,5 +1,9 @@
 package com.daytodo.domain.user.service;
 
+import com.daytodo.domain.auth.entity.PasswordResetToken;
+import com.daytodo.domain.auth.entity.RefreshToken;
+import com.daytodo.domain.auth.repository.PasswordResetTokenRepository;
+import com.daytodo.domain.auth.repository.RefreshTokenRepository;
 import com.daytodo.domain.region.entity.Region;
 import com.daytodo.domain.region.enums.RegionLevel;
 import com.daytodo.domain.region.repository.RegionRepository;
@@ -45,13 +49,16 @@ class UserServiceTest {
     @Mock UserInterestRegionRepository interestRegionRepository;
     @Mock RegionRepository regionRepository;
     @Mock PasswordEncoder passwordEncoder;
+    @Mock RefreshTokenRepository refreshTokenRepository;
+    @Mock PasswordResetTokenRepository passwordResetTokenRepository;
 
     UserService userService;
 
     @BeforeEach
     void setUp() {
         userService = new UserService(
-                userRepository, interestRegionRepository, regionRepository, passwordEncoder, CLOCK
+                userRepository, interestRegionRepository, regionRepository, passwordEncoder,
+                refreshTokenRepository, passwordResetTokenRepository, CLOCK
         );
     }
 
@@ -150,13 +157,19 @@ class UserServiceTest {
     @Test
     void changesPasswordWhenCurrentPasswordMatches() {
         User user = user(1L, UserStatus.ACTIVE);
+        RefreshToken refreshToken = new RefreshToken(1L, "refresh-token", LocalDateTime.now(CLOCK).plusDays(1));
+        PasswordResetToken resetToken = new PasswordResetToken(1L, "123456", LocalDateTime.now(CLOCK).plusMinutes(10));
         when(userRepository.findActiveUserForUpdate(1L, UserStatus.ACTIVE)).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("current1234", "password")).thenReturn(true);
         when(passwordEncoder.encode("newPassword1234")).thenReturn("encodedNewPassword");
+        when(refreshTokenRepository.findById(1L)).thenReturn(Optional.of(refreshToken));
+        when(passwordResetTokenRepository.findById(1L)).thenReturn(Optional.of(resetToken));
 
         userService.changePassword(1L, new UserRequest.ChangePassword("current1234", "newPassword1234"));
 
         assertThat(user.getPassword()).isEqualTo("encodedNewPassword");
+        verify(refreshTokenRepository).delete(refreshToken);
+        verify(passwordResetTokenRepository).delete(resetToken);
     }
 
     @Test
