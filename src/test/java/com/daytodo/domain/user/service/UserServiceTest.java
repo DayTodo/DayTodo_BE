@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.Clock;
@@ -43,12 +44,15 @@ class UserServiceTest {
     @Mock UserRepository userRepository;
     @Mock UserInterestRegionRepository interestRegionRepository;
     @Mock RegionRepository regionRepository;
+    @Mock PasswordEncoder passwordEncoder;
 
     UserService userService;
 
     @BeforeEach
     void setUp() {
-        userService = new UserService(userRepository, interestRegionRepository, regionRepository, CLOCK);
+        userService = new UserService(
+                userRepository, interestRegionRepository, regionRepository, passwordEncoder, CLOCK
+        );
     }
 
     @Test
@@ -141,6 +145,46 @@ class UserServiceTest {
                 .isInstanceOf(ProjectException.class)
                 .extracting("errorCode")
                 .isEqualTo(UserErrorCode.USER_ALREADY_WITHDRAWN);
+    }
+
+    @Test
+    void changesPasswordWhenCurrentPasswordMatches() {
+        User user = user(1L, UserStatus.ACTIVE);
+        when(userRepository.findByIdAndUserStatus(1L, UserStatus.ACTIVE)).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("current1234", "password")).thenReturn(true);
+        when(passwordEncoder.encode("newPassword1234")).thenReturn("encodedNewPassword");
+
+        userService.changePassword(1L, new UserRequest.ChangePassword("current1234", "newPassword1234"));
+
+        assertThat(user.getPassword()).isEqualTo("encodedNewPassword");
+    }
+
+    @Test
+    void rejectsPasswordChangeWhenCurrentPasswordDoesNotMatch() {
+        User user = user(1L, UserStatus.ACTIVE);
+        when(userRepository.findByIdAndUserStatus(1L, UserStatus.ACTIVE)).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("wrongPassword", "password")).thenReturn(false);
+
+        assertThatThrownBy(() -> userService.changePassword(
+                1L, new UserRequest.ChangePassword("wrongPassword", "newPassword1234")
+        ))
+                .isInstanceOf(ProjectException.class)
+                .extracting("errorCode")
+                .isEqualTo(UserErrorCode.INVALID_CURRENT_PASSWORD);
+    }
+
+    @Test
+    void rejectsPasswordChangeForSocialOnlyAccount() {
+        User user = new User("user@example.com", null, "daytodo", null, LoginType.NAVER);
+        ReflectionTestUtils.setField(user, "id", 1L);
+        when(userRepository.findByIdAndUserStatus(1L, UserStatus.ACTIVE)).thenReturn(Optional.of(user));
+
+        assertThatThrownBy(() -> userService.changePassword(
+                1L, new UserRequest.ChangePassword("current1234", "newPassword1234")
+        ))
+                .isInstanceOf(ProjectException.class)
+                .extracting("errorCode")
+                .isEqualTo(UserErrorCode.SOCIAL_ACCOUNT_PASSWORD_CHANGE_NOT_ALLOWED);
     }
 
     private User user(Long id, UserStatus status) {

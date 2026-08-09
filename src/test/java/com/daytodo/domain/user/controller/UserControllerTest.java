@@ -20,6 +20,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -38,13 +39,13 @@ class UserControllerTest {
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(new UserController(
-                userService,
-                profileService,
-                notificationService,
-                feedbackService,
-                policyService,
-                fcmTokenService
-        ))
+                        userService,
+                        profileService,
+                        notificationService,
+                        feedbackService,
+                        policyService,
+                        fcmTokenService
+                ))
                 .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
                 .build();
     }
@@ -81,6 +82,23 @@ class UserControllerTest {
                         "device-token",
                         com.daytodo.domain.user.enums.DevicePlatform.ANDROID
                 )
+        );
+    }
+
+    @Test
+    void changesPasswordUsingAuthenticatedPrincipal() throws Exception {
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(1L, null)
+        );
+
+        mockMvc.perform(patch("/users/password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"currentPassword\":\"current1234\",\"newPassword\":\"newPassword1234\"}"))
+                .andExpect(status().isNoContent());
+
+        verify(userService).changePassword(
+                1L,
+                new com.daytodo.domain.user.dto.UserRequest.ChangePassword("current1234", "newPassword1234")
         );
     }
 

@@ -17,7 +17,9 @@ public enum UserErrorCode implements BaseErrorCode {
     PROFILE_IMAGE_STORAGE_NOT_CONFIGURED(HttpStatus.SERVICE_UNAVAILABLE, "PROFILE_IMAGE_STORAGE_NOT_CONFIGURED", "프로필 이미지 저장소 설정이 완료되지 않았습니다."),
     PROFILE_IMAGE_UPLOAD_FAILED(HttpStatus.BAD_GATEWAY, "PROFILE_IMAGE_UPLOAD_FAILED", "프로필 이미지를 저장하지 못했습니다."),
     FEEDBACK_TOO_SHORT(HttpStatus.BAD_REQUEST, "FEEDBACK_TOO_SHORT", "의견은 공백을 제거한 후 100자 이상이어야 합니다."),
-    POLICY_NOT_AVAILABLE(HttpStatus.INTERNAL_SERVER_ERROR, "POLICY_NOT_AVAILABLE", "약관 및 정책을 불러오지 못했습니다.");
+    POLICY_NOT_AVAILABLE(HttpStatus.INTERNAL_SERVER_ERROR, "POLICY_NOT_AVAILABLE", "약관 및 정책을 불러오지 못했습니다."),
+    INVALID_CURRENT_PASSWORD(HttpStatus.UNAUTHORIZED, "INVALID_CURRENT_PASSWORD", "현재 비밀번호가 일치하지 않습니다."),
+    SOCIAL_ACCOUNT_PASSWORD_CHANGE_NOT_ALLOWED(HttpStatus.CONFLICT, "SOCIAL_ACCOUNT_PASSWORD_CHANGE_NOT_ALLOWED", "소셜 로그인 계정은 비밀번호 변경을 지원하지 않습니다.");
 
     private final HttpStatus status;
     private final String code;

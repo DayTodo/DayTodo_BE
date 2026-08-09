@@ -3,6 +3,7 @@ package com.daytodo.domain.user.dto;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 import com.daytodo.domain.user.enums.DevicePlatform;
@@ -44,6 +45,19 @@ public final class UserRequest {
     public record SubmitFeedback(
             @NotNull(message = "의견 내용은 필수입니다.")
             String content
+    ) {
+    }
+
+    public record ChangePassword(
+            @NotBlank(message = "현재 비밀번호는 필수입니다.")
+            String currentPassword,
+
+            @NotBlank(message = "새 비밀번호는 필수입니다.")
+            @Pattern(
+                    regexp = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d!@#$%^&*()_+]{8,}$",
+                    message = "비밀번호는 영문+숫자 조합 8자 이상이어야 합니다."
+            )
+            String newPassword
     ) {
     }
 }
