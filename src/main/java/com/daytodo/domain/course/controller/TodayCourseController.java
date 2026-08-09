@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -58,6 +59,16 @@ public class TodayCourseController {
             @RequestBody TodayCourseRequest.AddPlace request
     ) {
         return todayCourseService.addPlaceToCourse(userId, courseId, request);
+    }
+
+    @Operation(summary = "투데이 장소 삭제")
+    @DeleteMapping("/{courseId}/today-places/{coursePlaceId}")
+    public TodayCourseResponse.GetCoursePlaces removePlaceFromCourse(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long courseId,
+            @PathVariable Long coursePlaceId
+    ) {
+        return todayCourseService.removePlaceFromCourse(userId, courseId, coursePlaceId);
     }
 
     @Operation(summary = "투데이 장소 순서 변경")
