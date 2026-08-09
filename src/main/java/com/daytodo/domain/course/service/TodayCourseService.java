@@ -156,6 +156,32 @@ public class TodayCourseService {
     }
 
     /*
+     * 코스 장소 삭제
+     * coursePlaceId 로 코스에서 장소를 제거하고, 남은 목록을 순서대로 반환한다.
+     * placeOrder 는 재정렬하지 않는다(조회는 order asc, 추가는 max+1 이라 빈 순번이 있어도 무방).
+     */
+    @Transactional
+    public TodayCourseResponse.GetCoursePlaces removePlaceFromCourse(
+            Long userId,
+            Long courseId,
+            Long coursePlaceId
+    ) {
+        getCourseAsMember(userId, courseId);
+
+        CoursePlace coursePlace = coursePlaceRepository.findById(coursePlaceId)
+                .orElseThrow(() -> new ProjectException(CourseErrorCode.COURSE_PLACE_NOT_FOUND));
+
+        // 다른 코스의 장소를 삭제하지 못하도록 소속 코스를 확인한다.
+        if (!coursePlace.getCourse().getCourseId().equals(courseId)) {
+            throw new ProjectException(CourseErrorCode.COURSE_PLACE_NOT_FOUND);
+        }
+
+        coursePlaceRepository.delete(coursePlace);
+
+        return TodayCourseConverter.toCoursePlaces(coursePlaceRepository.findPlacesByCourseId(courseId));
+    }
+
+    /*
      * 코스 장소 순서 변경
      * 전달받은 순서대로 placeOrder 를 갱신하고, 변경된 목록을 순서대로 반환한다.
      * 순서 충돌을 막기 위해 코스의 전체 장소를 빠짐없이 재배열하는 경우만 허용한다.
