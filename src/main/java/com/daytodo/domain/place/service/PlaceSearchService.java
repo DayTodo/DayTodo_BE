@@ -8,8 +8,8 @@ import com.daytodo.domain.place.infra.NaverLocalSearchClient;
 import com.daytodo.domain.place.infra.NaverLocalSearchResponse;
 import com.daytodo.domain.place.repository.PlaceRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -24,6 +24,8 @@ public class PlaceSearchService {
 
     // 네이버 지역검색 좌표(mapx/mapy)는 WGS84 좌표에 1e7 을 곱한 정수 문자열이다.
     private static final double NAVER_COORDINATE_SCALE = 10_000_000.0;
+    private static final double MAX_LATITUDE = 90.0;    // WGS84 위도 범위 ±90
+    private static final double MAX_LONGITUDE = 180.0;  // WGS84 경도 범위 ±180
     private static final String HTML_TAG_PATTERN = "<[^>]*>";
 
     private final NaverLocalSearchClient naverLocalSearchClient;
@@ -32,10 +34,11 @@ public class PlaceSearchService {
     /*
      * 장소 검색
      * 네이버 지역검색 결과를 place 테이블에 lazy-upsert 하고, 내부 placeId·좌표를 포함해 응답한다.
-     * 이렇게 저장된 placeId 로 투데이/코스 장소 추가(POST /courses/{courseId}/today-places)를 이어서 할 수 있다.
-     * 좌표가 없어 저장할 수 없는 항목(지도 표시·담기 불가)은 결과에서 제외한다.
+     * 이렇게 저장된 placeId 로 추천 등록/코스 담기를 이어서 할 수 있다.
+     * 좌표가 없거나 유효 범위를 벗어난 항목(지도 표시·담기 불가)은 결과에서 제외한다.
+     * 항목별 upsert 는 각자 독립적이라 메서드 전체를 하나의 트랜잭션으로 묶지 않는다
+     * (Spring Data 리포지토리 메서드 단위 트랜잭션 사용 → 동시성 위반 시 재조회가 안전하게 동작).
      */
-    @Transactional
     public PlaceResDTO.GetPlaceSearch search(
             PlaceReqDTO.GetPlaceSearch request
     ){
@@ -55,22 +58,42 @@ public class PlaceSearchService {
 
     // 네이버 항목을 naverPlaceId 기준으로 조회하고, 없으면 저장한다(추천 담기 플로우와 동일한 upsert).
     private Optional<Place> upsertPlace(NaverLocalSearchResponse.Item item) {
-        Double latitude = coordinate(item.mapy());
-        Double longitude = coordinate(item.mapx());
+        Double latitude = coordinate(item.mapy(), MAX_LATITUDE);
+        Double longitude = coordinate(item.mapx(), MAX_LONGITUDE);
         if (latitude == null || longitude == null) {
             return Optional.empty();
         }
 
         String naverPlaceId = externalId(item);
         Place place = placeRepository.findByNaverPlaceId(naverPlaceId)
-                .orElseGet(() -> placeRepository.save(
-                        PlaceConverter.toNewPlace(item, naverPlaceId, latitude, longitude)));
+                .orElseGet(() -> saveOrGetExisting(item, naverPlaceId, latitude, longitude));
         return Optional.of(place);
     }
 
-    private Double coordinate(String value) {
+    // 동시 요청이 같은 장소를 저장하면 naver_place_id 유니크 제약에 걸리므로,
+    // 위반 시 먼저 저장된 행을 재조회해 반환한다(유니크 제약 위반이 500 으로 새는 것을 방지).
+    private Place saveOrGetExisting(NaverLocalSearchResponse.Item item, String naverPlaceId,
+                                    double latitude, double longitude) {
         try {
-            return (value == null || value.isBlank()) ? null : Double.parseDouble(value) / NAVER_COORDINATE_SCALE;
+            return placeRepository.save(PlaceConverter.toNewPlace(item, naverPlaceId, latitude, longitude));
+        } catch (DataIntegrityViolationException exception) {
+            return placeRepository.findByNaverPlaceId(naverPlaceId)
+                    .orElseThrow(() -> exception);
+        }
+    }
+
+    // 파싱 결과가 유한하고 WGS84 허용 범위(위도 ±90, 경도 ±180) 안일 때만 좌표로 인정한다.
+    // (Double.parseDouble 은 "NaN"/"Infinity" 를 예외 없이 통과시키므로 별도 검증이 필요하다.)
+    private Double coordinate(String value, double absoluteBound) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        try {
+            double parsed = Double.parseDouble(value) / NAVER_COORDINATE_SCALE;
+            if (!Double.isFinite(parsed) || Math.abs(parsed) > absoluteBound) {
+                return null;
+            }
+            return parsed;
         } catch (NumberFormatException exception) {
             return null;
         }
