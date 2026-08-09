@@ -18,6 +18,7 @@ import com.daytodo.domain.user.entity.User;
 import com.daytodo.domain.user.repository.UserRepository;
 import com.daytodo.global.apiPayload.exception.ProjectException;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -71,7 +72,11 @@ public class PlaceBookmarkService {
         try {
             saved = bookmarkPlaceRepository.saveAndFlush(new BookmarkPlace(user, place));
         } catch (DataIntegrityViolationException e) {
-            // 동시에 동일 요청이 들어와 유니크 제약(uk_bookmark_place_user_place)에 걸린 경우
+            // 동시에 동일 요청이 들어와 유니크 제약(uk_bookmark_place_user_place)에 걸린 경우만 DUPLICATE_BOOKMARK로 처리.
+            // FK 등 다른 원인이면 그대로 전파한다.
+            if (!isDuplicateBookmarkConstraintViolation(e)) {
+                throw e;
+            }
             throw new ProjectException(PlaceErrorCode.DUPLICATE_BOOKMARK);
         }
 
@@ -80,6 +85,7 @@ public class PlaceBookmarkService {
                 .placeId(place.getPlaceId())
                 .build();
     }
+
     /**
      * 장소 저장(북마크) - 내부 Place PK 기준. 코스/기록에서 다녀온 장소 저장용.
      * (매거진용 createBookmark(contentId)와 달리 TourAPI 조회 없이 기존 Place를 바로 사용)
@@ -98,6 +104,9 @@ public class PlaceBookmarkService {
         try {
             saved = bookmarkPlaceRepository.saveAndFlush(new BookmarkPlace(user, place));
         } catch (DataIntegrityViolationException e) {
+            if (!isDuplicateBookmarkConstraintViolation(e)) {
+                throw e;
+            }
             throw new ProjectException(PlaceErrorCode.DUPLICATE_BOOKMARK);
         }
 
@@ -105,6 +114,17 @@ public class PlaceBookmarkService {
                 .bookmarkId(saved.getId())
                 .placeId(place.getPlaceId())
                 .build();
+    }
+
+    /**
+     * DataIntegrityViolationException 이 북마크 user-place 유니크 제약
+     * (uk_bookmark_place_user_place) 위반으로 발생한 것인지 확인한다.
+     * FK 위반 등 다른 원인은 이 조건에 해당하지 않아 상위로 그대로 전파된다.
+     */
+    private boolean isDuplicateBookmarkConstraintViolation(DataIntegrityViolationException e) {
+        Throwable cause = e.getCause();
+        return cause instanceof ConstraintViolationException cve
+                && "uk_bookmark_place_user_place".equals(cve.getConstraintName());
     }
 
     /**
