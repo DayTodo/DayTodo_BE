@@ -1,9 +1,9 @@
 package com.daytodo.domain.place.converter;
 
 import com.daytodo.domain.place.dto.response.PlaceResDTO;
+import com.daytodo.domain.place.entity.Place;
 import com.daytodo.domain.place.infra.NaverLocalSearchResponse;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -36,25 +36,46 @@ public class PlaceConverter {
     );
 
     private static final String HTML_TAG_PATTERN = "<[^>]*>";
+    private static final String DEFAULT_CATEGORY = "기타";
 
-    public static PlaceResDTO.GetPlaceSearch toPlaceSearch(NaverLocalSearchResponse response) {
-        if (response == null || response.items() == null) {
-            return new PlaceResDTO.GetPlaceSearch(List.of());
-        }
-
-        List<PlaceResDTO.GetPlaceSearch.PlaceItem> places = response.items().stream()
-                .map(PlaceConverter::toPlaceItem)
-                .toList();
-
-        return new PlaceResDTO.GetPlaceSearch(places);
+    /**
+     * 네이버 지역검색 항목 -> 신규 저장용 Place.
+     * 좌표/식별자(naverPlaceId)는 호출부(서비스)에서 파싱해 넘겨준다.
+     * region 은 검색 시점에 알 수 없으므로 null 로 저장한다(place.region_id nullable).
+     */
+    public static Place toNewPlace(
+            NaverLocalSearchResponse.Item item,
+            String naverPlaceId,
+            double latitude,
+            double longitude
+    ) {
+        String category = normalizeCategory(item.category());
+        return new Place(
+                null,
+                naverPlaceId,
+                removeHtmlTags(item.title()),
+                category != null ? category : DEFAULT_CATEGORY,
+                item.address() != null ? item.address() : "",
+                emptyToNull(item.roadAddress()),
+                latitude,
+                longitude,
+                emptyToNull(item.telephone()),
+                emptyToNull(removeHtmlTags(item.description())),
+                null
+        );
     }
 
-    private static PlaceResDTO.GetPlaceSearch.PlaceItem toPlaceItem(NaverLocalSearchResponse.Item item) {
+    // 저장된 Place -> 장소 검색 응답 항목.
+    // 검색 시 네이버 결과를 place 테이블에 upsert 하므로, 응답은 저장된 Place 기준으로 만든다.
+    public static PlaceResDTO.GetPlaceSearch.PlaceItem toPlaceItem(Place place) {
         return PlaceResDTO.GetPlaceSearch.PlaceItem.builder()
-                .placeName(removeHtmlTags(item.title()))
-                .category(normalizeCategory(item.category()))
-                .regionName(extractRegionName(item.roadAddress(), item.address()))
-                .description(emptyToNull(removeHtmlTags(item.description())))
+                .placeId(place.getPlaceId())
+                .placeName(place.getPlaceName())
+                .category(place.getCategory())
+                .regionName(extractRegionName(place.getRoadAddress(), place.getAddress()))
+                .description(emptyToNull(place.getDescription()))
+                .latitude(place.getLatitude())
+                .longitude(place.getLongitude())
                 .build();
     }
 
