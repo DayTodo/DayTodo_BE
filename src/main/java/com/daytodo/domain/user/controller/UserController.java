@@ -55,6 +55,16 @@ public class UserController {
         return profileService.updateProfile(userId, nickname, profileImage);
     }
 
+    @Operation(summary = "비밀번호 변경 (마이페이지)")
+    @PatchMapping("/password")
+    public ResponseEntity<Void> changePassword(
+            @AuthenticationPrincipal Long userId,
+            @Valid @RequestBody UserRequest.ChangePassword request
+    ) {
+        userService.changePassword(userId, request);
+        return ResponseEntity.noContent().build();
+    }
+
     @Operation(summary = "관심지역 조회")
     @GetMapping("/interest-region")
     public UserResponse.InterestRegions getInterestRegions(

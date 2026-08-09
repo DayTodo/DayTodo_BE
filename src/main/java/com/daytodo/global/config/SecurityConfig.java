@@ -96,7 +96,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PATCH,
                                 "/users/profile",
                                 "/users/interest-regions",
-                                "/users/notifications"
+                                "/users/notifications",
+                                "/users/password"
                         ).authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/users/me").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/users/fcm-token").authenticated()
