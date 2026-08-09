@@ -15,8 +15,6 @@ import com.daytodo.domain.course.repository.CourseMemberRepository;
 import com.daytodo.domain.course.repository.CoursePlaceRepository;
 import com.daytodo.domain.course.repository.CourseRepository;
 import com.daytodo.domain.course.repository.MemoryPhotoRepository;
-import com.daytodo.domain.place.entity.Place;
-import com.daytodo.domain.place.repository.PlaceRepository;
 import com.daytodo.global.apiPayload.exception.ProjectException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -37,9 +35,6 @@ public class TodayCourseService {
     private final CourseMemberRepository courseMemberRepository;
     private final CoursePlaceRepository coursePlaceRepository;
     private final MemoryPhotoRepository memoryPhotoRepository;
-    private final PlaceRepository placeRepository;
-    // 코스 장소 추가 시 추천담기와 공통인 append 로직을 재사용한다.
-    private final CourseService courseService;
 
     /*
      * 투데이 코스 조회
@@ -128,31 +123,6 @@ public class TodayCourseService {
         }
 
         return imageUrls;
-    }
-
-    /*
-     * 코스 장소 추가
-     * placeId 로 장소를 코스 맨 뒤에 추가하고, 추가 후 전체 목록을 순서대로 반환한다.
-     */
-    @Transactional
-    public TodayCourseResponse.GetCoursePlaces addPlaceToCourse(
-            Long userId,
-            Long courseId,
-            TodayCourseRequest.AddPlace request
-    ) {
-        if (request == null || request.placeId() == null) {
-            throw new ProjectException(CourseErrorCode.MISSING_PLACE_ID);
-        }
-
-        Course course = getCourseAsMember(userId, courseId);
-
-        Place place = placeRepository.findById(request.placeId())
-                .orElseThrow(() -> new ProjectException(CourseErrorCode.PLACE_NOT_FOUND));
-
-        // 중복확인 + 마지막순서+1 + CoursePlace 생성 (추천담기와 공통)
-        courseService.appendPlaceToCourse(course, place, userId);
-
-        return TodayCourseConverter.toCoursePlaces(coursePlaceRepository.findPlacesByCourseId(courseId));
     }
 
     /*

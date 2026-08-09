@@ -38,9 +38,6 @@ public enum CourseErrorCode implements BaseErrorCode {
     PLACE_NOT_FOUND(HttpStatus.NOT_FOUND, "PLACE_NOT_FOUND", "장소를 찾을 수 없습니다."),
     DUPLICATE_RECOMMENDATION(HttpStatus.CONFLICT, "DUPLICATE_RECOMMENDATION", "이미 추천된 장소입니다."),
 
-    // 코스 장소 추가
-    MISSING_PLACE_ID(HttpStatus.BAD_REQUEST, "INVALID_PARAMETER", "placeId가 필요합니다."),
-
     // 코스 장소 순서 변경
     INVALID_PLACE_ORDER(HttpStatus.BAD_REQUEST, "INVALID_PARAMETER", "순서 정보가 올바르지 않습니다."),
     COURSE_PLACE_NOT_FOUND(HttpStatus.NOT_FOUND, "COURSE_PLACE_NOT_FOUND", "코스에 속하지 않는 장소가 포함되어 있습니다."),

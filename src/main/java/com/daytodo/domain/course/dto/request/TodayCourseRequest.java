@@ -13,11 +13,6 @@ public class TodayCourseRequest {
             List<String> imageUrls
     ){}
 
-    // 코스 장소 추가 : placeId 로 직접 추가. null 검증은 서비스에서 (INVALID_PARAMETER 코드 유지)
-    public record AddPlace(
-            Long placeId
-    ){}
-
     // 코스 장소 순서 변경 : 배열 순서대로 placeOrder 갱신. 검증은 서비스에서
     public record ReorderCoursePlaces(
             List<Long> orderedCoursePlaceIds
