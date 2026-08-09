@@ -80,6 +80,32 @@ public class PlaceBookmarkService {
                 .placeId(place.getPlaceId())
                 .build();
     }
+    /**
+     * 장소 저장(북마크) - 내부 Place PK 기준. 코스/기록에서 다녀온 장소 저장용.
+     * (매거진용 createBookmark(contentId)와 달리 TourAPI 조회 없이 기존 Place를 바로 사용)
+     */
+    @Transactional
+    public PlaceResDTO.CreateBookmark createBookmarkByPlaceId(Long userId, Long placeId) {
+        Place place = placeRepository.findById(placeId)
+                .orElseThrow(() -> new ProjectException(PlaceErrorCode.PLACE_NOT_FOUND));
+
+        if (bookmarkPlaceRepository.existsByUser_IdAndPlace_PlaceId(userId, placeId)) {
+            throw new ProjectException(PlaceErrorCode.DUPLICATE_BOOKMARK);
+        }
+
+        User user = userRepository.getReferenceById(userId);
+        BookmarkPlace saved;
+        try {
+            saved = bookmarkPlaceRepository.saveAndFlush(new BookmarkPlace(user, place));
+        } catch (DataIntegrityViolationException e) {
+            throw new ProjectException(PlaceErrorCode.DUPLICATE_BOOKMARK);
+        }
+
+        return PlaceResDTO.CreateBookmark.builder()
+                .bookmarkId(saved.getId())
+                .placeId(place.getPlaceId())
+                .build();
+    }
 
     /**
      * 관광 콘텐츠 ID 로 Place 를 조회하거나 없으면 생성한다.

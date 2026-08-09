@@ -81,6 +81,15 @@ public class PlaceController {
         return placeBookmarkService.createBookmark(userId, request.contentId());
     }
 
+    @Operation(summary = "코스 장소 저장 (기록 탭)")
+    @PostMapping("/{placeId}/bookmarks")
+    public PlaceResDTO.CreateBookmark createBookmarkByPlaceId(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long placeId
+    ) {
+        return placeBookmarkService.createBookmarkByPlaceId(userId, placeId);
+    }
+
     @Operation(summary = "매거진 장소 저장 해제")
     @DeleteMapping("/bookmarks/{bookmarkId}")
     public PlaceResDTO.DeleteBookmark deleteBookmark(
