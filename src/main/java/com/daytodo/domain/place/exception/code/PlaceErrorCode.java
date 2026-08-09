@@ -23,6 +23,9 @@ public enum PlaceErrorCode implements BaseErrorCode {
 
     // 북마크: 저장된 장소 없음(해제 대상 없음)
     BOOKMARK_NOT_FOUND(HttpStatus.NOT_FOUND, "BOOKMARK_NOT_FOUND", "저장된 장소를 찾을 수 없습니다."),
+
+    // 북마크: placeId로 조회했는데 해당 장소가 존재하지 않음
+    PLACE_NOT_FOUND(HttpStatus.NOT_FOUND, "PLACE_NOT_FOUND", "장소를 찾을 수 없습니다."),
     ;
 
     private final HttpStatus status;
