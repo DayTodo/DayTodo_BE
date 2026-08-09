@@ -51,16 +51,6 @@ public class TodayCourseController {
         return todayCourseService.saveMemoryPhotos(userId, courseId, request);
     }
 
-    @Operation(summary = "투데이 장소 추가")
-    @PostMapping("/{courseId}/today-places")
-    public TodayCourseResponse.GetCoursePlaces addPlaceToCourse(
-            @AuthenticationPrincipal Long userId,
-            @PathVariable Long courseId,
-            @RequestBody TodayCourseRequest.AddPlace request
-    ) {
-        return todayCourseService.addPlaceToCourse(userId, courseId, request);
-    }
-
     @Operation(summary = "투데이 장소 삭제")
     @DeleteMapping("/{courseId}/today-places/{coursePlaceId}")
     public TodayCourseResponse.GetCoursePlaces removePlaceFromCourse(
