@@ -90,7 +90,8 @@ public class UserService {
 
     @Transactional
     public void changePassword(Long userId, UserRequest.ChangePassword request) {
-        User user = getActiveUser(userId);
+        User user = userRepository.findActiveUserForUpdate(userId, UserStatus.ACTIVE)
+                .orElseThrow(() -> new ProjectException(UserErrorCode.USER_NOT_FOUND));
         // 네이버 전용 계정(password=null)은 현재 비밀번호가 없으므로 마이페이지에서 변경할 수 없다.
         if (user.getLoginType() != LoginType.LOCAL) {
             throw new ProjectException(UserErrorCode.SOCIAL_ACCOUNT_PASSWORD_CHANGE_NOT_ALLOWED);
