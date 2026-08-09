@@ -50,9 +50,11 @@ public final class UserRequest {
 
     public record ChangePassword(
             @NotBlank(message = "현재 비밀번호는 필수입니다.")
+            @Size(max = 72, message = "비밀번호는 72자 이하여야 합니다.")
             String currentPassword,
 
             @NotBlank(message = "새 비밀번호는 필수입니다.")
+            @Size(max = 72, message = "비밀번호는 72자 이하여야 합니다.")
             @Pattern(
                     regexp = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d!@#$%^&*()_+]{8,}$",
                     message = "비밀번호는 영문+숫자 조합 8자 이상이어야 합니다."
