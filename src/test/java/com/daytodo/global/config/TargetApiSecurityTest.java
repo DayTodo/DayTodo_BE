@@ -4,6 +4,9 @@ import com.daytodo.domain.course.controller.CourseController;
 import com.daytodo.domain.course.dto.CourseResponse;
 import com.daytodo.domain.course.service.CourseService;
 import com.daytodo.domain.course.service.CourseAiRecommendationService;
+import com.daytodo.domain.region.controller.RegionController;
+import com.daytodo.domain.region.dto.RegionResponse;
+import com.daytodo.domain.region.service.RegionService;
 import com.daytodo.domain.user.controller.UserController;
 import com.daytodo.domain.user.dto.UserResponse;
 import com.daytodo.domain.user.service.FeedbackService;
@@ -35,7 +38,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(controllers = {UserController.class, CourseController.class})
+@WebMvcTest(controllers = {UserController.class, CourseController.class, RegionController.class})
 @Import({
         SecurityConfig.class,
         JwtConfig.class,
@@ -60,6 +63,7 @@ class TargetApiSecurityTest {
     @MockitoBean FcmTokenService fcmTokenService;
     @MockitoBean CourseService courseService;
     @MockitoBean CourseAiRecommendationService courseAiRecommendationService;
+    @MockitoBean RegionService regionService;
     @MockitoBean JpaMetamodelMappingContext jpaMetamodelMappingContext;
 
     @Test
@@ -121,6 +125,18 @@ class TargetApiSecurityTest {
         mockMvc.perform(get("/users/policies"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.termsOfService").value("terms"));
+    }
+
+    @Test
+    void regionsRemainPublic() throws Exception {
+        when(regionService.getRegions()).thenReturn(new RegionResponse.Regions(List.of()));
+
+        mockMvc.perform(get("/regions"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.regions").isArray())
+                .andExpect(jsonPath("$.regions").isEmpty());
+
+        verify(regionService).getRegions();
     }
 
     private String bearer(Long userId) {

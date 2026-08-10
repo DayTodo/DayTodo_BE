@@ -46,4 +46,16 @@ class RegionControllerTest {
 
         verify(regionService).getRegions();
     }
+
+    @Test
+    void returnsEmptyRegionList() throws Exception {
+        when(regionService.getRegions()).thenReturn(new RegionResponse.Regions(List.of()));
+
+        mockMvc.perform(get("/regions"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.regions").isArray())
+                .andExpect(jsonPath("$.regions").isEmpty());
+
+        verify(regionService).getRegions();
+    }
 }

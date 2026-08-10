@@ -81,6 +81,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/courses/diaries/{diaryId}/course").authenticated()
                         .requestMatchers(HttpMethod.GET, "/courses/diaries").authenticated()
                         .requestMatchers(HttpMethod.GET, "/courses/*/memory-photos").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/regions").permitAll()
                         // TodayCourse는 JWT 인증 전환 완료 - LEGACY permitAll 보다 먼저 매칭되어야 함
                         .requestMatchers(HttpMethod.GET, "/courses/today").authenticated()
                         .requestMatchers(HttpMethod.POST, "/courses/*/complete").authenticated()
