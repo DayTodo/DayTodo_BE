@@ -28,12 +28,26 @@ public class BookmarkPlaceConverter {
 
         return PlaceResDTO.GetBookmarkList.BookmarkItem.builder()
                 .bookmarkId(bookmarkPlace.getId())
-                .magazineId(null)   // 매거진 도메인 연동 전까지 null
+                // 관광(KorService2) 출처 장소는 tour_content_id 가 곧 magazineId(=contentId).
+                // 네이버 출처 장소는 값이 없어 null (해당 항목은 매거진 상세로 이동 불가).
+                .magazineId(parseContentId(place.getTourContentId()))
                 .thumbnailUrl(place.getImageUrl())
                 .placeName(place.getPlaceName())
                 .regionName(toRegionName(place.getRegion()))
                 .category(place.getCategory())
                 .build();
+    }
+
+    // tour_content_id(숫자 문자열) -> Long. 값이 없거나 숫자가 아니면 null 로 흡수.
+    private static Long parseContentId(String tourContentId) {
+        if (tourContentId == null || tourContentId.isBlank()) {
+            return null;
+        }
+        try {
+            return Long.parseLong(tourContentId.trim());
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     // "시 구" 형태로 조립한다. 시/도 단위 지역이면 상위 지역이 없으므로 지역명만 반환
