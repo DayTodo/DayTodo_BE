@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
@@ -36,6 +37,7 @@ public class TodayCourseService {
     private final CoursePlaceRepository coursePlaceRepository;
     private final MemoryPhotoRepository memoryPhotoRepository;
     private final TodayCoursePromoter todayCoursePromoter;
+    private final Clock clock;
 
     /*
      * 투데이 코스 조회
@@ -45,7 +47,7 @@ public class TodayCourseService {
      */
     @Transactional
     public TodayCourseResponse.GetTodayCourse getTodayCourse(Long userId) {
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(clock);
         todayCoursePromoter.promoteDueCourses(userId, today);
 
         Optional<Course> todayCourse = courseRepository.findMemberCoursesByDateAndStatuses(
