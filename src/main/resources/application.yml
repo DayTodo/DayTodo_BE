@@ -77,5 +77,5 @@ firebase:
 
 notification:
   zone: ${NOTIFICATION_ZONE:Asia/Seoul}
-  course-remingit add src/main/java/com/daytodo/domain/auth/service/AuthMailService.java src/main/resources/application.ymlder-cron: ${COURSE_REMINDER_CRON:0 0 9 * * *}
+  course-reminder-cron: ${COURSE_REMINDER_CRON:0 0 9 * * *}
   dispatch-delay-ms: ${NOTIFICATION_DISPATCH_DELAY_MS:60000}
