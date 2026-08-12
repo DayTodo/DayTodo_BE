@@ -19,6 +19,7 @@ public class PlaceReqDTO {
     // 충돌하므로, 요청 스키마 이름을 명시적으로 구분한다.
     @Schema(name = "CreateBookmarkRequest")
     public record CreateBookmark(
+        @Schema(description = "관광(KorService2) 콘텐츠 ID. 매거진 상세 조회 응답의 magazineId 값을 그대로 전달한다. (내부 Place PK 아님)")
         @NotNull(message = "contentId가 필요합니다.") Long contentId
     ){}
 
