@@ -2,6 +2,7 @@ package com.daytodo.domain.auth.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -23,13 +24,20 @@ public class AuthMailService {
 
     private final JavaMailSender mailSender;
 
+    @Value("${app.base-url:https://dev.daytodo.cloud}")
+    private String baseUrl;
+
     @Async
     public void sendVerificationEmail(String to, String token) {
+        String verificationLink = baseUrl + "/auth/verify-email?token=" + token;
+
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
         message.setSubject("[데이투두] 이메일 인증을 완료해주세요");
-        message.setText("아래 링크(또는 토큰)로 이메일 인증을 완료해주세요.\n\n인증 토큰: " + token
-                + "\n\nGET /auth/verify-email?token=" + token);
+        message.setText("데이투두 회원가입을 환영합니다!\n\n"
+                + "아래 링크를 클릭하면 이메일 인증이 완료됩니다.\n\n"
+                + verificationLink
+                + "\n\n본인이 요청하지 않았다면 이 메일을 무시하셔도 됩니다.");
         sendSafely(message);
     }
 
