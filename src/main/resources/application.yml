@@ -47,10 +47,6 @@ spring:
       max-file-size: 5MB
       max-request-size: 6MB
 
-springdoc:
-  # 요청/응답 DTO가 같은 단순 클래스명(예: CreateBookmark)을 쓸 때 스키마 충돌 방지
-  use-fqn: true
-
 app:
   base-url: ${APP_BASE_URL:https://dev.daytodo.cloud}
 

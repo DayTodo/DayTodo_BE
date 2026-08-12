@@ -1,6 +1,7 @@
 package com.daytodo.domain.place.dto.request;
 
 import com.daytodo.domain.place.enums.BookmarkSortType;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
@@ -14,6 +15,9 @@ public class PlaceReqDTO {
     ){}
 
     // 장소 저장(북마크). contentId = 관광(KorService2) 콘텐츠 ID (내부 Place PK 아님)
+    // 응답 DTO(PlaceResDTO.CreateBookmark)와 단순 클래스명이 같아 Swagger 스키마가
+    // 충돌하므로, 요청 스키마 이름을 명시적으로 구분한다.
+    @Schema(name = "CreateBookmarkRequest")
     public record CreateBookmark(
         @NotNull(message = "contentId가 필요합니다.") Long contentId
     ){}
