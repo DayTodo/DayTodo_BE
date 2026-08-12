@@ -75,7 +75,6 @@ public class MagazineConverter {
             List<TourApiResponse.ImageItem> images
     ) {
         return MagazineResDTO.GetMagazineDetail.builder()
-                .magazineId(parseLong(common.contentid()))
                 .placeId(parseLong(common.contentid()))
                 .thumbnailUrl(firstNonBlank(common.firstimage(), common.firstimage2()))
                 .category(categoryName(common.contenttypeid()))
