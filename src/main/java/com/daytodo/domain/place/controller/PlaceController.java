@@ -72,7 +72,11 @@ public class PlaceController {
         return magazineService.getMagazinePhotos(magazineId);
     }
 
-    @Operation(summary = "매거진 장소 저장")
+    @Operation(
+            summary = "매거진 장소 저장",
+            description = "매거진 상세 조회 응답의 magazineId 값을 contentId 로 그대로 전달한다. "
+                    + "(contentId = 관광 KorService2 콘텐츠 ID, 내부 Place PK 아님)"
+    )
     @PostMapping("/bookmarks")
     public PlaceResDTO.CreateBookmark createBookmark(
             @AuthenticationPrincipal Long userId,
