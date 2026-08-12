@@ -24,7 +24,7 @@ public class MagazineResDTO {
     // 매거진 상세
     @Builder
     public record GetMagazineDetail(
-            Long placeId,            // 관광공사 contentId (저장 시 contentId 로 사용)
+            Long magazineId,         // 매거진 PK = 관광공사 contentId (저장 시 이 값을 contentId 로 전달)
             String thumbnailUrl,
             String category,
             String placeName,
