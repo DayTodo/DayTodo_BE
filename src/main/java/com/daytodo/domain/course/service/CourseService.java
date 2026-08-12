@@ -66,13 +66,19 @@ public class CourseService {
     private final RecommendationLikeRepository recommendationLikeRepository;
     private final PlaceRepository placeRepository;
     private final RecommendationCommentRepository recommendationCommentRepository;
+    private final TodayCoursePromoter todayCoursePromoter;
 
     private final Clock clock;
 
+    // 진행중 목록/배너가 IN_PROGRESS 상태에 의존하므로, 조회 전에 오늘 날짜의
+    // PLANNING 코스를 IN_PROGRESS 로 승격시킨다(투데이 조회와 동일 규칙). 쓰기 발생.
+    @Transactional
     public CourseResponse.Courses getCourses(Long userId, LocalDate startDate, LocalDate endDate) {
         userService.getActiveUser(userId);
         validatePeriod(startDate, endDate);
         LocalDate today = LocalDate.now(clock);
+
+        todayCoursePromoter.promoteDueCourses(userId, today);
 
         List<Course> inProgress = courseRepository.findMemberCoursesByStatus(
                 userId, MemberStatus.JOINED, CourseStatus.IN_PROGRESS

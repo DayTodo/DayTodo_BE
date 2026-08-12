@@ -28,8 +28,10 @@ class CourseQueryValidationTest {
     @Test
     @DisplayName("투데이 코스 관련 JPQL이 정상적으로 실행된다")
     void queriesRun() {
-        assertThat(courseRepository.findMemberCoursesByDateAndStatus(
-                1L, LocalDate.now(), CourseStatus.IN_PROGRESS, MemberStatus.JOINED
+        assertThat(courseRepository.findMemberCoursesByDateAndStatuses(
+                1L, LocalDate.now(),
+                java.util.List.of(CourseStatus.PLANNING, CourseStatus.IN_PROGRESS),
+                MemberStatus.JOINED
         )).isEmpty();
 
         assertThat(courseMemberRepository.findMembersByCourseId(1L, MemberStatus.JOINED)).isEmpty();

@@ -83,6 +83,11 @@ public class Course extends BaseEntity {
         this.courseStatus = CourseStatus.PLANNING;
     }
 
+    // 코스 시작 (계획 중 -> 진행 중). courseDate 가 도래해 투데이 조회 시점에 승격된다.
+    public void start() {
+        this.courseStatus = CourseStatus.IN_PROGRESS;
+    }
+
     // 코스 종료
     public void complete() {
         this.courseStatus = CourseStatus.COMPLETED;

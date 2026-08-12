@@ -70,6 +70,7 @@ class CourseServiceTest {
     @Mock RecommendationLikeRepository recommendationLikeRepository;
     @Mock PlaceRepository placeRepository;
     @Mock RecommendationCommentRepository recommendationCommentRepository;
+    @Mock TodayCoursePromoter todayCoursePromoter;
 
     CourseService courseService;
     User user;
@@ -88,6 +89,7 @@ class CourseServiceTest {
                 recommendationLikeRepository,
                 placeRepository,
                 recommendationCommentRepository,
+                todayCoursePromoter,
                 CLOCK
         );
         user = new User("user@example.com", "password", "user", null, LoginType.LOCAL);

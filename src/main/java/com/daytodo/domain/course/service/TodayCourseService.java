@@ -35,17 +35,23 @@ public class TodayCourseService {
     private final CourseMemberRepository courseMemberRepository;
     private final CoursePlaceRepository coursePlaceRepository;
     private final MemoryPhotoRepository memoryPhotoRepository;
+    private final TodayCoursePromoter todayCoursePromoter;
 
     /*
      * 투데이 코스 조회
-     * 오늘 진행 중인 코스가 없으면 예외가 아니라 todayCourse: null 로 응답한다.
+     * 오늘 날짜의 코스가 없으면 예외가 아니라 todayCourse: null 로 응답한다.
+     * 별도의 상태 전이 스케줄러가 없으므로, 조회 진입 시점에 오늘 날짜의 PLANNING
+     * 코스를 IN_PROGRESS 로 승격시킨다(홈/투데이 공용 규칙).
      */
-    @Transactional(readOnly = true)
+    @Transactional
     public TodayCourseResponse.GetTodayCourse getTodayCourse(Long userId) {
-        Optional<Course> todayCourse = courseRepository.findMemberCoursesByDateAndStatus(
+        LocalDate today = LocalDate.now();
+        todayCoursePromoter.promoteDueCourses(userId, today);
+
+        Optional<Course> todayCourse = courseRepository.findMemberCoursesByDateAndStatuses(
                 userId,
-                LocalDate.now(),
-                CourseStatus.IN_PROGRESS,
+                today,
+                List.of(CourseStatus.IN_PROGRESS),
                 MemberStatus.JOINED
         ).stream().findFirst();
 
