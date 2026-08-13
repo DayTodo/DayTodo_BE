@@ -39,7 +39,7 @@ public class PlaceController {
         return placeSearchService.search(request);
     }
 
-    @Operation(summary = "저장한 매거진 목록 조회")
+    @Operation(summary = "저장 목록 조회")
     @GetMapping("/bookmarks")
     public PlaceResDTO.GetBookmarkList getBookmarkList(
             @AuthenticationPrincipal Long userId,
