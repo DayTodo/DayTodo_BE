@@ -15,19 +15,26 @@ import com.daytodo.domain.course.repository.CourseMemberRepository;
 import com.daytodo.domain.course.repository.CoursePlaceRepository;
 import com.daytodo.domain.course.repository.CourseRepository;
 import com.daytodo.domain.course.repository.MemoryPhotoRepository;
+import com.daytodo.domain.course.storage.MemoryPhotoStorage;
 import com.daytodo.global.apiPayload.exception.ProjectException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Clock;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TodayCourseService {
@@ -36,6 +43,7 @@ public class TodayCourseService {
     private final CourseMemberRepository courseMemberRepository;
     private final CoursePlaceRepository coursePlaceRepository;
     private final MemoryPhotoRepository memoryPhotoRepository;
+    private final MemoryPhotoStorage memoryPhotoStorage;
     private final TodayCoursePromoter todayCoursePromoter;
     private final Clock clock;
 
@@ -89,17 +97,26 @@ public class TodayCourseService {
 
     /*
      * 추억 사진 저장
+     * 클라이언트가 보낸 이미지 파일을 S3 에 올려 영구 URL 로 치환한 뒤 기록한다.
+     * (예전엔 기기 로컬 content:// URI 를 그대로 저장해 시간이 지나면 못 읽고 회색으로 깨졌다.)
      * diary_id 는 비워둔 채 저장하고, 이후 해당 날짜의 일기가 작성될 때 연결한다.
      */
     @Transactional
     public TodayCourseResponse.SaveMemoryPhotos saveMemoryPhotos(
             Long userId,
             Long courseId,
-            TodayCourseRequest.SaveMemoryPhotos request
+            List<MultipartFile> images
     ) {
         Course course = getCourseAsMember(userId, courseId);
 
-        List<String> imageUrls = extractImageUrls(request);
+        List<MultipartFile> validImages = extractImages(images);
+
+        // 업로드한 S3 객체 URL. 뒤이은 DB 저장이 실패해 트랜잭션이 롤백되면 정리한다(고아 객체 방지).
+        List<String> uploadedUrls = new ArrayList<>();
+        registerPhotoCleanupOnRollback(uploadedUrls);
+        for (MultipartFile image : validImages) {
+            uploadedUrls.add(memoryPhotoStorage.upload(courseId, image));
+        }
 
         // 여러 사용자가 동시에 사진을 업로드해도 photo_order 가 겹치지 않도록,
         // 순번 계산~저장 구간을 코스 행 쓰기 락으로 직렬화한다.
@@ -109,28 +126,48 @@ public class TodayCourseService {
         int startOrder = memoryPhotoRepository.findMaxPhotoOrderByCourseId(courseId) + 1;
 
         List<MemoryPhoto> memoryPhotos = memoryPhotoRepository.saveAll(
-                MemoryPhotoConverter.toMemoryPhotos(course, imageUrls, startOrder)
+                MemoryPhotoConverter.toMemoryPhotos(course, uploadedUrls, startOrder)
         );
 
         return MemoryPhotoConverter.toSaveMemoryPhotos(memoryPhotos);
     }
 
-    // 공백 URL 은 걸러내고, 저장할 이미지가 하나도 없으면 400 으로 응답한다.
-    private List<String> extractImageUrls(TodayCourseRequest.SaveMemoryPhotos request) {
-        if (request == null || request.imageUrls() == null) {
+    // 비어있는 파트는 걸러내고, 업로드할 이미지가 하나도 없으면 400 으로 응답한다.
+    private List<MultipartFile> extractImages(List<MultipartFile> images) {
+        if (images == null) {
             throw new ProjectException(CourseErrorCode.EMPTY_MEMORY_PHOTO);
         }
 
-        List<String> imageUrls = request.imageUrls().stream()
-                .filter(url -> url != null && !url.isBlank())
-                .map(String::trim)
+        List<MultipartFile> validImages = images.stream()
+                .filter(image -> image != null && !image.isEmpty())
                 .toList();
 
-        if (imageUrls.isEmpty()) {
+        if (validImages.isEmpty()) {
             throw new ProjectException(CourseErrorCode.EMPTY_MEMORY_PHOTO);
         }
 
-        return imageUrls;
+        return validImages;
+    }
+
+    // DB 저장 실패로 트랜잭션이 롤백되면 이미 업로드한 S3 객체를 삭제한다.
+    // (uploadedUrls 는 업로드가 진행되며 채워지고, afterCompletion 은 트랜잭션 종료 후 실행되므로 최종 목록을 본다.)
+    private void registerPhotoCleanupOnRollback(List<String> uploadedUrls) {
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCompletion(int status) {
+                if (status == STATUS_ROLLED_BACK) {
+                    uploadedUrls.forEach(TodayCourseService.this::deleteQuietly);
+                }
+            }
+        });
+    }
+
+    private void deleteQuietly(String imageUrl) {
+        try {
+            memoryPhotoStorage.deleteByUrl(imageUrl);
+        } catch (RuntimeException exception) {
+            log.warn("추억 사진 S3 삭제 실패. url={}", imageUrl, exception);
+        }
     }
 
     /*

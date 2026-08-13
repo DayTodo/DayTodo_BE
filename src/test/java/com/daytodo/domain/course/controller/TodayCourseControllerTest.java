@@ -16,7 +16,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -45,17 +45,17 @@ class TodayCourseControllerTest {
     }
 
     @Test
-    @DisplayName("저장할 이미지가 없으면 400 INVALID_PARAMETER로 응답한다")
-    void emptyImageUrls() throws Exception {
+    @DisplayName("업로드한 이미지가 없으면 400 INVALID_PARAMETER로 응답한다")
+    void emptyImages() throws Exception {
         // WebMvc 슬라이스에선 인증 principal이 태워지지 않아 userId 인자는 null 이므로 any() 로 매칭한다.
         // (이 테스트의 검증 대상은 서비스 예외 -> 400 INVALID_PARAMETER 매핑이다.)
         given(todayCourseService.saveMemoryPhotos(any(), anyLong(), any()))
                 .willThrow(new ProjectException(CourseErrorCode.EMPTY_MEMORY_PHOTO));
 
-        mockMvc.perform(post("/courses/1/photos")
+        // images 파트 없이 multipart 요청 → 컨트롤러는 null 로 서비스 호출(required=false), 서비스가 400 을 던진다.
+        mockMvc.perform(multipart("/courses/1/photos")
                         .header("X-User-Id", 1L)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"imageUrls\": []}"))
+                        .contentType(MediaType.MULTIPART_FORM_DATA))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("INVALID_PARAMETER"))
                 .andExpect(jsonPath("$.message").value("저장할 이미지가 없습니다."));
