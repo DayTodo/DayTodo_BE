@@ -28,6 +28,7 @@ public class BookmarkPlaceConverter {
 
         return PlaceResDTO.GetBookmarkList.BookmarkItem.builder()
                 .bookmarkId(bookmarkPlace.getId())
+                .placeId(place.getPlaceId())
                 // 관광(KorService2) 출처 장소는 tour_content_id 가 곧 magazineId(=contentId).
                 // 네이버 출처 장소는 값이 없어 null (해당 항목은 매거진 상세로 이동 불가).
                 .magazineId(parseContentId(place.getTourContentId()))
