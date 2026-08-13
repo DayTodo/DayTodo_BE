@@ -199,7 +199,7 @@ class CourseServiceTest {
     @Test
     void groupsMultipleCalendarCoursesOnSameDate() {
         Course first = course(100L, "첫 코스", TODAY, CourseStatus.PLANNING);
-        Course second = course(101L, "둘째 코스", TODAY, CourseStatus.PLANNING);
+        Course second = course(101L, "둘째 코스", TODAY, CourseStatus.COMPLETED);
         when(courseRepository.findCalendarCourses(
                 1L,
                 MemberStatus.JOINED,
@@ -211,6 +211,9 @@ class CourseServiceTest {
 
         assertThat(response.schedules()).hasSize(1);
         assertThat(response.schedules().get(0).courses()).hasSize(2);
+        assertThat(response.schedules().get(0).courses())
+                .extracting(CourseResponse.CalendarCourse::courseStatus)
+                .containsExactly(CourseStatus.PLANNING, CourseStatus.COMPLETED);
     }
 
     @Test

@@ -41,7 +41,12 @@ public class UserService {
 
     public UserResponse.Profile getProfile(Long userId) {
         User user = getActiveUser(userId);
-        return new UserResponse.Profile(user.getId(), user.getNickname(), user.getProfileImageUrl());
+        return new UserResponse.Profile(
+                user.getId(),
+                user.getEmail(),
+                user.getNickname(),
+                user.getProfileImageUrl()
+        );
     }
 
     public UserResponse.InterestRegions getInterestRegions(Long userId) {

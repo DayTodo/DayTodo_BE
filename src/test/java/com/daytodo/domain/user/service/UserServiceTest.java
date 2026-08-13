@@ -70,6 +70,7 @@ class UserServiceTest {
         UserResponse.Profile response = userService.getProfile(1L);
 
         assertThat(response.userId()).isEqualTo(1L);
+        assertThat(response.email()).isEqualTo("user@example.com");
         assertThat(response.nickname()).isEqualTo("daytodo");
         assertThat(response.profileImageUrl()).isEqualTo("profile.png");
     }
