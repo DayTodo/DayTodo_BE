@@ -76,7 +76,7 @@ class TargetApiSecurityTest {
     @Test
     void jwtPrincipalOverridesUntrustedUserIdHeader() throws Exception {
         when(userService.getProfile(1L))
-                .thenReturn(new UserResponse.Profile(1L, "daytodo", null));
+                .thenReturn(new UserResponse.Profile(1L, "user@example.com", "daytodo", null));
 
         mockMvc.perform(get("/users/profile")
                         .header(HttpHeaders.AUTHORIZATION, bearer(1L))

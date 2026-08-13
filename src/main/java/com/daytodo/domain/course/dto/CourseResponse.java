@@ -1,10 +1,11 @@
 package com.daytodo.domain.course.dto;
 
-import com.daytodo.domain.course.enums.HomeBannerStatus;
-import com.daytodo.domain.course.enums.ParticipantType;
 import com.daytodo.domain.course.entity.Course;
+import com.daytodo.domain.course.enums.CourseStatus;
+import com.daytodo.domain.course.enums.HomeBannerStatus;
 import com.daytodo.domain.course.enums.MemberRole;
 import com.daytodo.domain.course.enums.MemberStatus;
+import com.daytodo.domain.course.enums.ParticipantType;
 import com.daytodo.domain.place.enums.PlaceRecommendationSource;
 
 import java.time.LocalDate;
@@ -55,7 +56,8 @@ public final class CourseResponse {
             Long courseId,
             String courseName,
             ParticipantType participantType,
-            long memberCount
+            long memberCount,
+            CourseStatus courseStatus
     ) {
     }
 
