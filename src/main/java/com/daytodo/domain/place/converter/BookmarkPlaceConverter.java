@@ -33,9 +33,20 @@ public class BookmarkPlaceConverter {
                 .magazineId(parseContentId(place.getTourContentId()))
                 .thumbnailUrl(place.getImageUrl())
                 .placeName(place.getPlaceName())
-                .regionName(toRegionName(place.getRegion()))
+                .regionName(resolveRegionName(place))
                 .category(place.getCategory())
                 .build();
+    }
+
+    // region(FK)이 있으면 그 지역명을, 없으면(네이버 검색 출처 등 미매핑) 주소 문자열로 지역명을 만든다.
+    // (검색 응답은 처음부터 주소로 지역명을 만드는데, region 미매핑 장소는 저장 목록에서 지역명이
+    //  비어 보이던 문제가 있어 동일한 주소 기반 규칙으로 fallback 한다.)
+    private static String resolveRegionName(Place place) {
+        String fromRegion = toRegionName(place.getRegion());
+        if (fromRegion != null) {
+            return fromRegion;
+        }
+        return RegionNameResolver.fromAddress(place.getRoadAddress(), place.getAddress());
     }
 
     // tour_content_id(숫자 문자열) -> Long. 값이 없거나 숫자가 아니면 null 로 흡수.
