@@ -68,6 +68,7 @@ public class Place extends BaseEntity {
             double latitude,
             double longitude,
             String phone,
+            String description,
             String imageUrl
     ) {
         Place place = new Place();
@@ -79,6 +80,7 @@ public class Place extends BaseEntity {
         place.latitude = latitude;
         place.longitude = longitude;
         place.phone = phone;
+        place.description = description;
         place.imageUrl = imageUrl;
         return place;
     }

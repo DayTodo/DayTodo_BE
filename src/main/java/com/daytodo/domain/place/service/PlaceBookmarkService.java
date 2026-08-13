@@ -189,6 +189,7 @@ public class PlaceBookmarkService {
                 parseCoordinate(common.mapy()),   // 위도
                 parseCoordinate(common.mapx()),   // 경도
                 emptyToNull(common.tel()),
+                emptyToNull(removeHtmlTags(common.overview())),   // 설명(overview, HTML 태그 제거)
                 firstImage(common)
         );
     }
@@ -241,6 +242,11 @@ public class PlaceBookmarkService {
 
     private static String nullToEmpty(String value) {
         return value == null ? "" : value;
+    }
+
+    // overview 등 관광 API 텍스트에 섞여 오는 HTML 태그 제거
+    private static String removeHtmlTags(String value) {
+        return value == null ? null : value.replaceAll("<[^>]*>", "");
     }
 
     private static String emptyToNull(String value) {
