@@ -6,7 +6,7 @@ public final class UserResponse {
     private UserResponse() {
     }
 
-    public record Profile(Long userId, String nickname, String profileImageUrl) {
+    public record Profile(Long userId, String email, String nickname, String profileImageUrl) {
     }
 
     public record InterestRegion(Long regionId, String regionName, String parentRegionName) {

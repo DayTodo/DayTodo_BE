@@ -141,7 +141,8 @@ public class CourseService {
                                         course.getCourseId(),
                                         course.getCourseName(),
                                         course.getParticipantType(),
-                                        memberCounts.getOrDefault(course.getCourseId(), 0L)
+                                        memberCounts.getOrDefault(course.getCourseId(), 0L),
+                                        course.getCourseStatus()
                                 ))
                                 .toList()
                 ))

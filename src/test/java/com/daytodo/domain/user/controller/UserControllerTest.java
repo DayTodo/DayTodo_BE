@@ -1,5 +1,6 @@
 package com.daytodo.domain.user.controller;
 
+import com.daytodo.domain.user.dto.UserResponse;
 import com.daytodo.domain.user.service.UserService;
 import com.daytodo.domain.user.service.ProfileService;
 import com.daytodo.domain.user.service.UserNotificationService;
@@ -24,7 +25,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class UserControllerTest {
@@ -60,8 +63,13 @@ class UserControllerTest {
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken(1L, null)
         );
+        when(userService.getProfile(1L)).thenReturn(
+                new UserResponse.Profile(1L, "user@example.com", "daytodo", "profile.png")
+        );
+
         mockMvc.perform(get("/users/profile"))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value("user@example.com"));
         verify(userService).getProfile(1L);
     }
 

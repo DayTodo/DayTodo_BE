@@ -55,6 +55,7 @@ class ProfileServiceTest {
         UserResponse.Profile response = service.updateProfile(1L, " 새 닉네임 ", null);
 
         assertThat(response.nickname()).isEqualTo("새 닉네임");
+        assertThat(response.email()).isEqualTo("user@example.com");
         assertThat(response.profileImageUrl()).isEqualTo("old-url");
         verify(profileImageStorage, never()).upload(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
     }
