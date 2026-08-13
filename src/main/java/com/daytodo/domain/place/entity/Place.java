@@ -49,7 +49,8 @@ public class Place extends BaseEntity {
     @Column (name = "phone", length = 30)
     private String phone;
 
-    @Column (name = "description", length = 500)
+    // 관광(KorService2) overview 등 긴 설명이 들어오므로 TEXT 로 저장한다.
+    @Column (name = "description", columnDefinition = "TEXT")
     private String description;
 
     @Column (name = "image_url", length = 500)
