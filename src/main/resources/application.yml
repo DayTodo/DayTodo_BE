@@ -44,8 +44,9 @@ spring:
 
   servlet:
     multipart:
+      # 파일 1개 최대 5MB. 추억 사진은 한 번에 여러 장 올릴 수 있어 요청 전체 한도를 넉넉히 둔다.
       max-file-size: 5MB
-      max-request-size: 6MB
+      max-request-size: 30MB
 
 app:
   base-url: ${APP_BASE_URL:https://dev.daytodo.cloud}

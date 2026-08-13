@@ -4,14 +4,7 @@ import java.util.List;
 
 public class TodayCourseRequest {
 
-    /*
-     * 추억 사진 저장
-     * 빈 목록/공백 URL 검증은 서비스에서 수행한다.
-     * (명세가 요구하는 INVALID_PARAMETER 코드로 응답하기 위해 Bean Validation 을 쓰지 않음)
-     */
-    public record SaveMemoryPhotos(
-            List<String> imageUrls
-    ){}
+    // 추억 사진 저장은 multipart/form-data(파일 업로드)로 처리하므로 별도 요청 DTO 를 두지 않는다.
 
     // 코스 장소 순서 변경 : 배열 순서대로 placeOrder 갱신. 검증은 서비스에서
     public record ReorderCoursePlaces(

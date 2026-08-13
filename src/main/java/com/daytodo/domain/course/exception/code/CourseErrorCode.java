@@ -24,6 +24,10 @@ public enum CourseErrorCode implements BaseErrorCode {
 
     // 추억 사진 저장
     EMPTY_MEMORY_PHOTO(HttpStatus.BAD_REQUEST, "INVALID_PARAMETER", "저장할 이미지가 없습니다."),
+    MEMORY_PHOTO_TOO_LARGE(HttpStatus.BAD_REQUEST, "MEMORY_PHOTO_TOO_LARGE", "추억 사진은 5MB 이하여야 합니다."),
+    INVALID_MEMORY_PHOTO_FORMAT(HttpStatus.BAD_REQUEST, "INVALID_MEMORY_PHOTO_FORMAT", "JPG 또는 PNG 이미지만 업로드할 수 있습니다."),
+    MEMORY_PHOTO_STORAGE_NOT_CONFIGURED(HttpStatus.SERVICE_UNAVAILABLE, "MEMORY_PHOTO_STORAGE_NOT_CONFIGURED", "추억 사진 저장소 설정이 완료되지 않았습니다."),
+    MEMORY_PHOTO_UPLOAD_FAILED(HttpStatus.BAD_GATEWAY, "MEMORY_PHOTO_UPLOAD_FAILED", "추억 사진을 저장하지 못했습니다."),
 
     COURSE_SAME_DAY_EDIT_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "COURSE_SAME_DAY_EDIT_NOT_ALLOWED", "당일 코스는 수정할 수 없습니다."),
     COURSE_DATE_CHANGE_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "COURSE_DATE_CHANGE_NOT_ALLOWED", "진행 중인 코스의 날짜는 변경할 수 없습니다."),
