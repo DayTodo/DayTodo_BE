@@ -577,7 +577,8 @@ public class CourseService {
         // 추천자(User) 조회
         User recommender = userService.getActiveUser(userId);
 
-        PlaceRecommendationSource sourceEnum = PlaceRecommendationSource.MEMBER;
+        // 요청의 출처를 그대로 사용한다. 저장된 장소에서 불러온 추천이면 SAVED 로 기록된다.
+        PlaceRecommendationSource sourceEnum = request.source();
 
         // Builder를 이용한 PlaceRecommendation 생성 (ERD 외래키/연관관계 100% 일치)
         PlaceRecommendation recommendation = PlaceRecommendation.builder()
