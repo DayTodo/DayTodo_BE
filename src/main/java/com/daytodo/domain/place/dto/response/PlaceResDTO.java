@@ -13,6 +13,7 @@ public class PlaceResDTO {
         @Builder
         public record BookmarkItem(
                 Long bookmarkId,
+                Long placeId,        // 내부 Place PK. 코스 장소 추천/추가 시 이 값을 사용한다.
                 Long magazineId,
                 String thumbnailUrl,
                 String placeName,
