@@ -289,14 +289,22 @@ public class AuthService {
         return profile;
     }
 
-    // TODO(팀 확인 필요): 네이버 동의항목에서 이메일 제공에 동의하지 않으면 email이 null일 수 있습니다.
-    // User.email이 NOT NULL + UNIQUE라 이 경우 예외 처리가 필요합니다.
     private User createUserFromNaverProfile(NaverApiClient.NaverProfileResponse profile) {
+        String email = profile.response().email();
+        if (email == null || email.isBlank()) {
+            throw new ProjectException(AuthErrorCode.NAVER_API_ERROR);
+        }
+        // 동일 이메일로 이미 가입된(LOCAL 등) 계정이 있으면 새 User를 만들지 않고 명확한 에러로 안내한다.
+        // (이 시점 이후 DB unique 제약에 의존하면 DataIntegrityViolationException이 그대로 500으로 노출된다.)
+        if (userRepository.existsByEmail(email)) {
+            throw new ProjectException(AuthErrorCode.EMAIL_DUPLICATED);
+        }
+
         String nickname = (profile.response().nickname() == null || profile.response().nickname().isBlank())
                 ? generateDefaultNickname()
                 : profile.response().nickname();
         User user = userRepository.save(new User(
-                profile.response().email(),
+                email,
                 null,
                 nickname,
                 null,
