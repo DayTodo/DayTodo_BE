@@ -1,10 +1,10 @@
-# DayTodo Backend
+# 🗓️ DayTodo Backend
 
 **소중한 사람과 함께할 하루를 계획하고, 오늘의 추억까지 기록하는 코스 플랫폼**
 
 DayTodo의 인증, 코스 협업, 장소 탐색, AI 추천, 다이어리 및 알림을 담당하는 Spring Boot API 서버입니다.
 
-## 프로젝트 소개
+## 📖 프로젝트 소개
 
 DayTodo는 연인, 가족, 친구 등 소중한 사람과 함께할 코스를 만들고 공유하며, 하루가 끝난 뒤 사진과 기록을 남길 수 있도록 돕는 서비스입니다.
 
@@ -19,22 +19,53 @@ DayTodo는 연인, 가족, 친구 등 소중한 사람과 함께할 코스를 �
 - 캘린더와 다이어리를 이용한 일정 및 추억 기록 관리
 - 관심 지역, 프로필, 알림 설정, FCM 푸시 알림 관리
 
-## 기술 스택
+## 👥 함께한 사람들
 
-| 구분 | 기술 |
+| 이름 | 소속 |
 | --- | --- |
-| Language | Java 17 |
-| Framework | Spring Boot 4.0.5, Spring MVC, Spring Security |
-| Data | Spring Data JPA, MySQL 8.0 |
-| Authentication | JWT, OAuth 2.0, BCrypt |
-| API Docs | Springdoc OpenAPI (Swagger UI) |
-| Storage | AWS S3 |
-| Notification | Firebase Cloud Messaging, Spring Mail |
-| External API | Naver Login/Local Search, 한국관광공사 TourAPI, Google Gemini |
-| Test | JUnit 5, H2, Spring Security Test |
-| Infra | AWS Elastic Beanstalk, Nginx, GitHub Actions |
+| 권준열 | 홍익대학교 |
+| 김지현 | 홍익대학교 |
+| 박나림 | 이화여자대학교 |
+| 유진서 | 이화여자대학교 |
 
-## 시스템 구성
+## 🛠️ 기술 스택
+
+**Language & Framework**
+
+![Java](https://img.shields.io/badge/Java_17-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot_4-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)
+![Spring Security](https://img.shields.io/badge/Spring_Security-6DB33F?style=for-the-badge&logo=springsecurity&logoColor=white)
+![JWT](https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white)
+
+**Data & Storage**
+
+![Spring Data JPA](https://img.shields.io/badge/Spring_Data_JPA-6DB33F?style=for-the-badge&logo=spring&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL_8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
+![Amazon S3](https://img.shields.io/badge/Amazon_S3-569A31?style=for-the-badge&logo=amazons3&logoColor=white)
+
+**External Services**
+
+![Firebase](https://img.shields.io/badge/Firebase_FCM-DD2C00?style=for-the-badge&logo=firebase&logoColor=white)
+![Google Gemini](https://img.shields.io/badge/Google_Gemini-8E75B2?style=for-the-badge&logo=googlegemini&logoColor=white)
+![Naver](https://img.shields.io/badge/Naver_API-03C75A?style=for-the-badge&logo=naver&logoColor=white)
+![TourAPI](https://img.shields.io/badge/TourAPI-0066B3?style=for-the-badge&logoColor=white)
+
+**API & Test**
+
+![Swagger](https://img.shields.io/badge/Swagger-85EA2D?style=for-the-badge&logo=swagger&logoColor=black)
+![JUnit 5](https://img.shields.io/badge/JUnit_5-25A162?style=for-the-badge&logo=junit5&logoColor=white)
+![H2](https://img.shields.io/badge/H2-09476B?style=for-the-badge&logoColor=white)
+
+**Infra & CI/CD**
+
+![AWS](https://img.shields.io/badge/AWS-232F3E?style=for-the-badge&logo=amazonwebservices&logoColor=white)
+![Elastic Beanstalk](https://img.shields.io/badge/Elastic_Beanstalk-FF9900?style=for-the-badge&logo=amazonwebservices&logoColor=white)
+![Nginx](https://img.shields.io/badge/Nginx-009639?style=for-the-badge&logo=nginx&logoColor=white)
+![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![Gradle](https://img.shields.io/badge/Gradle-02303A?style=for-the-badge&logo=gradle&logoColor=white)
+
+## 🏗️ 시스템 구성
 
 ![DayTodo BE 시스템 아키텍처](./docs/images/system-architecture.png)
 
@@ -55,7 +86,7 @@ src/main/java/com/daytodo
     └── web        # 헬스 체크
 ```
 
-## API 도메인
+## 🔌 API 도메인
 
 | Base path | 주요 기능 | 인증 |
 | --- | --- | --- |
@@ -76,7 +107,7 @@ Authorization: Bearer {access-token}
 
 - Swagger UI: `http://localhost:8080/swagger-ui/index.html`
 
-## 로컬 실행
+## 🚀 로컬 실행
 
 ### 1. 요구 사항
 
@@ -154,7 +185,7 @@ curl http://localhost:8080/health
 
 응답은 `healthy`입니다.
 
-## 테스트 및 빌드
+## ✅ 테스트 및 빌드
 
 전체 테스트를 실행합니다.
 
@@ -170,7 +201,7 @@ curl http://localhost:8080/health
 
 생성 결과는 `build/libs`에서 확인할 수 있습니다.
 
-## 배포
+## ☁️ 배포
 
 `develop` 브랜치로 향하는 Pull Request가 merge되면 GitHub Actions가 다음 작업을 수행합니다.
 
@@ -181,7 +212,7 @@ curl http://localhost:8080/health
 
 배포 워크플로는 `.github/workflows/dev-deploy.yml`에서 확인할 수 있습니다.
 
-## 브랜치 및 협업
+## 🤝 브랜치 및 협업
 
 - 기능 개발은 별도 브랜치에서 진행합니다.
 - Pull Request는 프로젝트 템플릿에 따라 관련 이슈, 변경 사항, 실행 결과를 작성합니다.
